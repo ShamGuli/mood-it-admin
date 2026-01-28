@@ -1,0 +1,511 @@
+# Mood IT - Cursor AI Rules
+
+## Project Overview
+Mood IT is a professional tech repair service website with admin panel and backend system.
+- **Location**: Wels, Austria
+- **Language**: German (primary), English (secondary)
+- **Tech Stack**: Next.js 14, TypeScript, Supabase, Material-UI
+
+---
+
+## 🎯 Core Principles
+
+### 1. TypeScript First
+- ALWAYS use TypeScript (never JavaScript)
+- Define proper types/interfaces for all data structures
+- Use Zod for runtime validation
+- No `any` types (use `unknown` if needed)
+- Prefer type inference where possible
+
+### 2. Code Quality
+- Write clean, readable, maintainable code
+- Use meaningful variable/function names
+- Keep functions small and single-purpose
+- Add JSDoc comments for complex logic
+- Follow DRY (Don't Repeat Yourself)
+
+### 3. Next.js 14 Best Practices
+- Use App Router (not Pages Router)
+- Prefer Server Components by default
+- Use Client Components only when needed ('use client')
+- Implement proper loading and error states
+- Use Next.js Image component for images
+
+### 4. Database & Supabase
+- ALWAYS use Supabase Client SDK (not raw SQL)
+- Implement Row Level Security (RLS) policies
+- Use prepared statements (automatic with Supabase)
+- Handle database errors gracefully
+- Use transactions for multi-step operations
+
+---
+
+## 📁 File Structure Rules
+
+### Naming Conventions
+- **Components**: PascalCase (e.g., `ServiceCard.tsx`)
+- **Utilities**: camelCase (e.g., `formatPrice.ts`)
+- **Types**: PascalCase (e.g., `Service.ts`)
+- **API Routes**: lowercase with hyphens (e.g., `booking-status`)
+- **Folders**: lowercase with hyphens (e.g., `admin-panel`)
+
+### File Organization
+```
+admin/
+├── src/
+│   ├── app/              # Next.js App Router
+│   ├── components/       # Reusable components
+│   │   ├── ui/          # Base UI components
+│   │   ├── forms/       # Form components
+│   │   └── layout/      # Layout components
+│   ├── lib/             # Utilities, helpers
+│   ├── hooks/           # Custom React hooks
+│   ├── store/           # State management (Zustand)
+│   ├── types/           # TypeScript types/interfaces
+│   └── constants/       # Constants, enums
+```
+
+---
+
+## 🎨 UI/UX Standards
+
+### Design System
+- **Colors**: Use CSS variables from design system
+  - Primary: `--primary-purple: #8a4fff`
+  - Gradient: `--gradient-primary: linear-gradient(135deg, #4185DD, #B42FDA)`
+- **Typography**: Poppins font family
+- **Spacing**: Use spacing scale (4px, 8px, 16px, 24px, 32px)
+- **Border Radius**: Use defined values (4px, 8px, 12px, 16px)
+
+### Material-UI
+- Use MUI components where available
+- Customize with `sx` prop or theme
+- Follow MUI component composition patterns
+- Use MUI icons (@mui/icons-material)
+
+### Responsive Design
+- Mobile-first approach
+- Use MUI breakpoints (xs, sm, md, lg, xl)
+- Test on mobile, tablet, desktop
+- Ensure touch targets >= 44x44px
+
+---
+
+## 🔒 Security Rules
+
+### Authentication
+- NEVER store passwords in plain text
+- Use Supabase Auth for authentication
+- Implement JWT token validation
+- Refresh tokens before expiry
+- Logout on 401 errors
+
+### Authorization
+- Check user role before allowing actions
+- Implement RLS policies on all tables
+- Validate input on both client and server
+- Use middleware for route protection
+
+### Input Validation
+- ALWAYS validate user input (Zod schemas)
+- Sanitize HTML content
+- Validate file uploads (type, size)
+- Prevent SQL injection (use parameterized queries)
+- Prevent XSS attacks (escape user content)
+
+### API Security
+- Rate limit all public endpoints
+- Use HTTPS only
+- Set secure HTTP headers
+- Implement CSRF protection
+- Hide sensitive data in responses
+
+---
+
+## 📝 Code Style
+
+### Imports
+```typescript
+// Order: React, Next.js, Third-party, Local
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@mui/material';
+import { ServiceCard } from '@/components/ui/ServiceCard';
+import { formatPrice } from '@/lib/utils';
+import type { Service } from '@/types';
+```
+
+### Components
+```typescript
+// Prefer named exports
+export function ServiceCard({ service }: ServiceCardProps) {
+  // Hooks first
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  
+  // Event handlers
+  const handleClick = () => {
+    // ...
+  };
+  
+  // Render
+  return (
+    <Card onClick={handleClick}>
+      {/* ... */}
+    </Card>
+  );
+}
+
+// Props interface above component
+interface ServiceCardProps {
+  service: Service;
+}
+```
+
+### API Routes
+```typescript
+// app/api/v1/services/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { createClient } from '@/lib/supabase/server';
+
+// Schema at top
+const querySchema = z.object({
+  category_id: z.string().uuid().optional(),
+  is_active: z.enum(['true', 'false']).optional(),
+});
+
+export async function GET(request: NextRequest) {
+  try {
+    // 1. Parse and validate query
+    const searchParams = Object.fromEntries(request.nextUrl.searchParams);
+    const validated = querySchema.parse(searchParams);
+    
+    // 2. Database query
+    const supabase = createClient();
+    let query = supabase.from('services').select('*');
+    
+    if (validated.category_id) {
+      query = query.eq('category_id', validated.category_id);
+    }
+    
+    const { data, error } = await query;
+    
+    // 3. Error handling
+    if (error) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 500 }
+      );
+    }
+    
+    // 4. Success response
+    return NextResponse.json({ success: true, data });
+    
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Validation failed', details: error.errors },
+        { status: 400 }
+      );
+    }
+    
+    return NextResponse.json(
+      { success: false, error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+---
+
+## 🌍 Internationalization
+
+### Language Rules
+- **Primary Language**: German (de)
+- **Secondary Language**: English (en) - optional
+- Use German for all UI text by default
+- Store content in both languages where applicable
+
+### Content Fields
+```typescript
+interface Service {
+  name_de: string;     // Required
+  name_en?: string;    // Optional
+  description_de: string;
+  description_en?: string;
+}
+```
+
+### Display Format
+```typescript
+// Show German by default, fallback to English
+const displayName = service.name_de || service.name_en || 'N/A';
+```
+
+---
+
+## 🧪 Testing
+
+### Unit Tests (Future)
+- Test pure functions and utilities
+- Test form validation schemas
+- Test API route handlers
+
+### Manual Testing Checklist
+- [ ] All forms validate correctly
+- [ ] Error messages are user-friendly
+- [ ] Loading states work
+- [ ] Success/error toasts appear
+- [ ] Mobile responsive
+- [ ] Keyboard navigation works
+- [ ] Screen reader accessible
+
+---
+
+## 📊 Data Formatting
+
+### Dates
+```typescript
+import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
+
+// Format: DD.MM.YYYY HH:mm
+const formatted = format(new Date(), 'dd.MM.yyyy HH:mm', { locale: de });
+```
+
+### Prices
+```typescript
+// Format: €XX.XX or €XX-XX
+export function formatPrice(min: number, max?: number): string {
+  if (!max || min === max) {
+    return `€${min.toFixed(0)}`;
+  }
+  return `€${min.toFixed(0)}-${max.toFixed(0)}`;
+}
+
+// Usage
+formatPrice(79, 199);  // "€79-199"
+formatPrice(49);       // "€49"
+```
+
+### Phone Numbers
+```typescript
+// Store: +43 123456789 (international format)
+// Display: +43 123 456 789 (with spaces)
+export function formatPhone(phone: string): string {
+  return phone.replace(/(\+\d{2})(\d{3})(\d{3})(\d{3})/, '$1 $2 $3 $4');
+}
+```
+
+---
+
+## 🚀 Performance
+
+### Optimization Rules
+- Use Next.js Image component (automatic optimization)
+- Implement pagination (max 20-50 items per page)
+- Lazy load heavy components
+- Use React Query for caching
+- Debounce search inputs (500ms)
+- Memoize expensive calculations
+
+### Database Queries
+- Select only needed columns
+- Use indexes on frequently queried columns
+- Limit results (pagination)
+- Avoid N+1 queries (use joins)
+
+---
+
+## 🐛 Error Handling
+
+### Client Side
+```typescript
+try {
+  const response = await fetch('/api/v1/services', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  
+  const result = await response.json();
+  
+  if (!result.success) {
+    throw new Error(result.error.message);
+  }
+  
+  toast.success('Service erstellt!');
+} catch (error) {
+  if (error instanceof Error) {
+    toast.error(error.message);
+  } else {
+    toast.error('Ein Fehler ist aufgetreten');
+  }
+}
+```
+
+### Server Side
+```typescript
+export async function POST(request: NextRequest) {
+  try {
+    // ... logic
+  } catch (error) {
+    console.error('Service creation failed:', error);
+    
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: {
+          code: 'SERVICE_CREATE_FAILED',
+          message: 'Service konnte nicht erstellt werden'
+        }
+      },
+      { status: 500 }
+    );
+  }
+}
+```
+
+---
+
+## 📦 Dependencies
+
+### Allowed Libraries
+- ✅ React, Next.js, TypeScript
+- ✅ Material-UI (@mui/material)
+- ✅ Supabase client
+- ✅ TanStack Query (React Query)
+- ✅ React Hook Form
+- ✅ Zod
+- ✅ date-fns
+- ✅ Zustand (state management)
+- ✅ Recharts (charts)
+
+### Restricted Libraries
+- ❌ axios (use fetch)
+- ❌ moment.js (use date-fns)
+- ❌ lodash (use native methods)
+- ❌ jQuery (use React)
+
+---
+
+## 🔧 Environment Variables
+
+### Required Variables
+```env
+# Supabase (public - safe in browser)
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+
+# Supabase (private - server only)
+SUPABASE_SERVICE_ROLE_KEY=
+
+# Email
+SENDGRID_API_KEY=
+
+# App
+NEXT_PUBLIC_APP_URL=
+```
+
+### Usage
+```typescript
+// Client-side (NEXT_PUBLIC_* only)
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+// Server-side (all variables)
+const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+```
+
+---
+
+## 📚 Documentation
+
+### Code Comments
+- Add JSDoc for exported functions
+- Explain WHY, not WHAT
+- Comment complex logic
+- Link to relevant docs
+
+### Example
+```typescript
+/**
+ * Calculates estimated repair time based on service type and device condition.
+ * 
+ * @param serviceId - UUID of the service
+ * @param condition - Device condition ('good' | 'damaged' | 'broken')
+ * @returns Estimated duration in hours
+ * 
+ * @see https://docs.moodit.at/services/time-estimation
+ */
+export function estimateRepairTime(
+  serviceId: string, 
+  condition: DeviceCondition
+): number {
+  // Complex calculation logic...
+}
+```
+
+---
+
+## ✅ Checklist Before Commit
+
+- [ ] Code compiles without errors
+- [ ] No TypeScript errors
+- [ ] No console.log statements (use proper logging)
+- [ ] All imports used
+- [ ] Proper error handling
+- [ ] User-friendly error messages (German)
+- [ ] Responsive on mobile
+- [ ] Follows naming conventions
+- [ ] Updated types if data structure changed
+- [ ] Tested manually
+
+---
+
+## 🚫 Common Mistakes to Avoid
+
+### DON'T:
+- ❌ Use `any` type
+- ❌ Ignore TypeScript errors
+- ❌ Store sensitive data in client-side code
+- ❌ Forget to validate user input
+- ❌ Use synchronous operations for DB queries
+- ❌ Hardcode values (use constants/env vars)
+- ❌ Leave unused imports
+- ❌ Commit `.env` files
+- ❌ Skip error handling
+- ❌ Use German in code (use English for code, German for UI)
+
+### DO:
+- ✅ Use TypeScript strictly
+- ✅ Validate all inputs
+- ✅ Handle errors gracefully
+- ✅ Use environment variables
+- ✅ Write self-documenting code
+- ✅ Test on multiple screen sizes
+- ✅ Use semantic HTML
+- ✅ Follow accessibility guidelines
+- ✅ Keep components small and focused
+- ✅ Use meaningful names
+
+---
+
+## 🎓 Learning Resources
+
+### Official Docs
+- Next.js 14: https://nextjs.org/docs
+- Supabase: https://supabase.com/docs
+- Material-UI: https://mui.com/material-ui/
+- TypeScript: https://www.typescriptlang.org/docs/
+
+### Best Practices
+- React Patterns: https://react.dev/learn
+- Next.js App Router: https://nextjs.org/docs/app
+- Supabase RLS: https://supabase.com/docs/guides/auth/row-level-security
+
+---
+
+**Last Updated**: January 28, 2026  
+**Project**: Mood IT Admin Panel & Backend  
+**Version**: 1.0.0
