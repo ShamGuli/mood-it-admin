@@ -414,3 +414,41 @@ document.addEventListener('DOMContentLoaded', () => {
     "priceRange": "€€"
   });
 });
+
+// ============================================
+// UNIVERSAL FOOTER LOADER
+// ============================================
+/**
+ * Load dynamic footer contact info from Settings API
+ * Call this function on any page to populate footer contact info
+ */
+async function loadFooterContactInfo() {
+  try {
+    const settings = await fetchSettings();
+    
+    if (settings) {
+      // Update footer address
+      const footerAddressEl = document.getElementById('footer-address');
+      if (footerAddressEl && settings.address_street && settings.address_city) {
+        const addressText = `${settings.address_street}, ${settings.address_city}${settings.address_zip ? ' ' + settings.address_zip : ''}, ${settings.address_country || 'Azerbaijan'}`;
+        footerAddressEl.textContent = addressText;
+      }
+      
+      // Update footer phone
+      const footerPhoneEl = document.getElementById('footer-phone-link');
+      if (footerPhoneEl && settings.contact_phone) {
+        footerPhoneEl.href = `tel:${settings.contact_phone}`;
+        footerPhoneEl.textContent = settings.contact_phone;
+      }
+      
+      // Update footer email
+      const footerEmailEl = document.getElementById('footer-email-link');
+      if (footerEmailEl && settings.contact_email) {
+        footerEmailEl.href = `mailto:${settings.contact_email}`;
+        footerEmailEl.textContent = settings.contact_email;
+      }
+    }
+  } catch (error) {
+    console.error('Error loading footer contact info:', error);
+  }
+}

@@ -1353,7 +1353,7 @@
                                 <img src="images/icon-location.svg" alt="Location">
                             </div>
                             <div class="footer-contact-content">
-                                <p>Street 222, Wels, Austria</p>
+                                <p id="footer-address">Yüklənir...</p>
                             </div>
                         </div>
                         <div class="footer-contact-item">
@@ -1361,7 +1361,7 @@
                                 <img src="images/icon-phone.svg" alt="Phone">
                             </div>
                             <div class="footer-contact-content">
-                                <p><a href="tel:+994505555555">+994 50 555 55 55</a></p>
+                                <p><a href="tel:+994505555555" id="footer-phone-link">+994 50 555 55 55</a></p>
                             </div>
                         </div>
                         <div class="footer-contact-item">
@@ -1369,7 +1369,7 @@
                                 <img src="images/icon-mail.svg" alt="Email">
                             </div>
                             <div class="footer-contact-content">
-                                <p><a href="mailto:info@moodit.at">info@moodit.at</a></p>
+                                <p><a href="mailto:info@moodit.at" id="footer-email-link">info@moodit.at</a></p>
                             </div>
                         </div>
                     </div>
@@ -1456,6 +1456,9 @@
                 'description': 'Berechnen Sie die Kosten für Ihre Gerätereparatur',
                 'url': 'https://moodit.at/preisliste.html'
             });
+            
+            // Load dynamic footer contact info
+            loadFooterContactInfo();
         });
     </script>
 </body>

@@ -812,7 +812,7 @@ Bizimlə sürətli servis, ədalətli qiymətlər və peşəkar texniki dəstək
                                 <img src="images/icon-location.svg" alt="Ünvan">
                             </div>
                             <div class="footer-contact-content">
-                                <p>Küçə 222, Bakı, Azərbaycan</p>
+                                <p id="footer-address">Yüklənir...</p>
                             </div>
                         </div>
                         <div class="footer-contact-item">
@@ -820,7 +820,7 @@ Bizimlə sürətli servis, ədalətli qiymətlər və peşəkar texniki dəstək
                                 <img src="images/icon-phone.svg" alt="Telefon">
                             </div>
                             <div class="footer-contact-content">
-                                <p><a href="tel:+994505555555">+994 50 555 55 55</a></p>
+                                <p><a href="tel:+994505555555" id="footer-phone-link">+994 50 555 55 55</a></p>
                             </div>
                         </div>
                         <div class="footer-contact-item">
@@ -828,7 +828,7 @@ Bizimlə sürətli servis, ədalətli qiymətlər və peşəkar texniki dəstək
                                 <img src="images/icon-mail.svg" alt="E-poçt">
                             </div>
                             <div class="footer-contact-content">
-                                <p><a href="mailto:info@moodit.at">info@moodit.at</a></p>
+                                <p><a href="mailto:info@moodit.at" id="footer-email-link">info@moodit.at</a></p>
                             </div>
                         </div>
                     </div>
@@ -906,6 +906,9 @@ Bizimlə sürətli servis, ədalətli qiymətlər və peşəkar texniki dəstək
                 'priceRange': '€€',
                 'openingHours': 'Bə-Cü 09:00-18:00'
             });
+            
+            // Load dynamic footer contact info
+            loadFooterContactInfo();
         });
     </script>
 </body>
