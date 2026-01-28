@@ -29,6 +29,55 @@ const nextConfig = {
       },
     ];
   },
+  // Serve static HTML files from public folder
+  async rewrites() {
+    return [
+      {
+        source: '/',
+        destination: '/index.html',
+      },
+      {
+        source: '/service-all',
+        destination: '/service-all.html',
+      },
+      {
+        source: '/service-smartphone',
+        destination: '/service-smartphone.html',
+      },
+      {
+        source: '/service-playstation',
+        destination: '/service-playstation.html',
+      },
+      {
+        source: '/service-macos',
+        destination: '/service-macos.html',
+      },
+      {
+        source: '/service-notebook',
+        destination: '/service-notebook.html',
+      },
+      {
+        source: '/service-desktop',
+        destination: '/service-desktop.html',
+      },
+      {
+        source: '/service-gpu',
+        destination: '/service-gpu.html',
+      },
+      {
+        source: '/preisliste',
+        destination: '/preisliste.html',
+      },
+      {
+        source: '/contact',
+        destination: '/contact.html',
+      },
+      {
+        source: '/about',
+        destination: '/about.html',
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
