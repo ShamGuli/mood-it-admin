@@ -197,7 +197,7 @@
                             </div>
                             <div class="contact-item-content">
                                 <p>Adresse</p>
-                                <h3>Wels, Österreich</h3>
+                                <h3 id="contact-address">Yüklənir...</h3>
                             </div>
                         </div>
                         <!-- Contact Info Item End -->
@@ -209,7 +209,7 @@
                             </div>
                             <div class="contact-item-content">
                                 <p>Telefon</p>
-                                <h3><a href="tel:+994505555555">+994 50 555 55 55</a></h3>
+                                <h3><a href="tel:+994505555555" id="contact-phone-link">+994 50 555 55 55</a></h3>
                             </div>
                         </div>
                         <!-- Contact Info Item End -->
@@ -221,7 +221,7 @@
                             </div>
                             <div class="contact-item-content">
                                 <p>E-Mail</p>
-                                <h3><a href="mailto:info@moodit.at">info@moodit.at</a></h3>
+                                <h3><a href="mailto:info@moodit.at" id="contact-email-link">info@moodit.at</a></h3>
                             </div>
                         </div>
                         <!-- Contact Info Item End -->
@@ -233,7 +233,7 @@
                             </div>
                             <div class="contact-item-content">
                                 <p>Öffnungszeiten</p>
-                                <h3>Mo - Fr: 09:00 - 18:00</h3>
+                                <h3 id="contact-hours">Yüklənir...</h3>
                             </div>
                         </div>
                         <!-- Contact Info Item End -->
@@ -352,7 +352,7 @@
                                 <img src="images/icon-location.svg" alt="Location">
                             </div>
                             <div class="footer-contact-content">
-                                <p>Street 222, Wels, Austria</p>
+                                <p id="footer-address">Yüklənir...</p>
                             </div>
                         </div>
                         <div class="footer-contact-item">
@@ -360,7 +360,7 @@
                                 <img src="images/icon-phone.svg" alt="Phone">
                             </div>
                             <div class="footer-contact-content">
-                                <p><a href="tel:+994505555555">+994 50 555 55 55</a></p>
+                                <p><a href="tel:+994505555555" id="footer-phone-link">+994 50 555 55 55</a></p>
                             </div>
                         </div>
                         <div class="footer-contact-item">
@@ -368,7 +368,7 @@
                                 <img src="images/icon-mail.svg" alt="Email">
                             </div>
                             <div class="footer-contact-content">
-                                <p><a href="mailto:info@moodit.at">info@moodit.at</a></p>
+                                <p><a href="mailto:info@moodit.at" id="footer-email-link">info@moodit.at</a></p>
                             </div>
                         </div>
                     </div>
@@ -418,8 +418,68 @@
     <!-- API Client -->
     <script src="js/api-client.js"></script>
     <script>
+        // Load dynamic contact information from Settings API
+        async function loadContactInfo() {
+            try {
+                const settings = await fetchSettings();
+                
+                if (settings) {
+                    // Update address
+                    const addressEl = document.getElementById('contact-address');
+                    if (addressEl && settings.address_street && settings.address_city) {
+                        addressEl.textContent = `${settings.address_street}, ${settings.address_city}${settings.address_zip ? ' ' + settings.address_zip : ''}, ${settings.address_country || 'Azerbaijan'}`;
+                    }
+                    
+                    // Update phone
+                    const phoneEl = document.getElementById('contact-phone-link');
+                    if (phoneEl && settings.contact_phone) {
+                        phoneEl.href = `tel:${settings.contact_phone}`;
+                        phoneEl.textContent = settings.contact_phone;
+                    }
+                    
+                    // Update email
+                    const emailEl = document.getElementById('contact-email-link');
+                    if (emailEl && settings.contact_email) {
+                        emailEl.href = `mailto:${settings.contact_email}`;
+                        emailEl.textContent = settings.contact_email;
+                    }
+                    
+                    // Update business hours
+                    const hoursEl = document.getElementById('contact-hours');
+                    if (hoursEl && settings.business_hours) {
+                        hoursEl.textContent = settings.business_hours;
+                    }
+                    
+                    // Update footer address
+                    const footerAddressEl = document.getElementById('footer-address');
+                    if (footerAddressEl && settings.address_street && settings.address_city) {
+                        footerAddressEl.textContent = `${settings.address_street}, ${settings.address_city}${settings.address_zip ? ' ' + settings.address_zip : ''}, ${settings.address_country || 'Azerbaijan'}`;
+                    }
+                    
+                    // Update footer phone
+                    const footerPhoneEl = document.getElementById('footer-phone-link');
+                    if (footerPhoneEl && settings.contact_phone) {
+                        footerPhoneEl.href = `tel:${settings.contact_phone}`;
+                        footerPhoneEl.textContent = settings.contact_phone;
+                    }
+                    
+                    // Update footer email
+                    const footerEmailEl = document.getElementById('footer-email-link');
+                    if (footerEmailEl && settings.contact_email) {
+                        footerEmailEl.href = `mailto:${settings.contact_email}`;
+                        footerEmailEl.textContent = settings.contact_email;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading contact info:', error);
+            }
+        }
+        
         // Contact form submission
         document.addEventListener('DOMContentLoaded', function() {
+            // Load contact information
+            loadContactInfo();
+            
             const contactForm = document.getElementById('contactForm');
             const msgSubmit = document.getElementById('msgSubmit');
             
