@@ -11,8 +11,11 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const category_id = searchParams.get('category_id');
     const is_active = searchParams.get('is_active');
+    const search = searchParams.get('search');
+    const order_by = searchParams.get('order_by') || 'created_at';
+    const order_direction = searchParams.get('order_direction') || 'desc';
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const limit = parseInt(searchParams.get('limit') || '50');
     
     // Build query
     let query = supabase
@@ -22,6 +25,7 @@ export async function GET(request: NextRequest) {
         category:service_categories(id, name_de, slug)
       `, { count: 'exact' });
     
+    // Filters
     if (category_id) {
       query = query.eq('category_id', category_id);
     }
@@ -30,12 +34,20 @@ export async function GET(request: NextRequest) {
       query = query.eq('is_active', is_active === 'true');
     }
     
+    // Search by name (German or English)
+    if (search) {
+      query = query.or(`name_de.ilike.%${search}%,name_en.ilike.%${search}%,slug.ilike.%${search}%`);
+    }
+    
+    // Ordering
+    const validOrderBy = ['created_at', 'updated_at', 'name_de', 'display_order'];
+    const orderColumn = validOrderBy.includes(order_by) ? order_by : 'created_at';
+    const orderAsc = order_direction === 'asc';
+    query = query.order(orderColumn, { ascending: orderAsc });
+    
     // Pagination
     const start = (page - 1) * limit;
     query = query.range(start, start + limit - 1);
-    
-    // Order by display_order
-    query = query.order('display_order', { ascending: true });
     
     const { data, error, count } = await query;
     

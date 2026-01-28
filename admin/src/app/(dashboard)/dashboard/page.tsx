@@ -10,48 +10,19 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { formatDate, formatPrice } from '@/lib/utils/format';
 
-// Mock API calls
+// API calls
 async function fetchDashboardStats() {
-  return {
-    totalBookings: 156,
-    pendingBookings: 12,
-    completedBookings: 125,
-    monthlyRevenue: 4200,
-  };
+  const response = await fetch('/api/v1/dashboard/stats');
+  if (!response.ok) throw new Error('Statistika yüklənə bilmədi');
+  const result = await response.json();
+  return result.data;
 }
 
 async function fetchRecentBookings() {
-  return {
-    items: [
-      {
-        id: '1',
-        booking_number: 'BOOK-20260128-0001',
-        customer_name: 'Max Mustermann',
-        service: { name_de: 'Display Tausch' },
-        status: 'pending',
-        estimated_price: '€149',
-        booking_date: '2026-01-29T10:00:00Z',
-      },
-      {
-        id: '2',
-        booking_number: 'BOOK-20260128-0002',
-        customer_name: 'Anna Schmidt',
-        service: { name_de: 'HDMI Port Reparatur' },
-        status: 'in_progress',
-        estimated_price: '€89',
-        booking_date: '2026-01-28T15:00:00Z',
-      },
-      {
-        id: '3',
-        booking_number: 'BOOK-20260127-0005',
-        customer_name: 'Peter Müller',
-        service: { name_de: 'Akku Wechsel' },
-        status: 'completed',
-        estimated_price: '€69',
-        booking_date: '2026-01-27T11:00:00Z',
-      },
-    ],
-  };
+  const response = await fetch('/api/v1/bookings?limit=5');
+  if (!response.ok) throw new Error('Son sifarişlər yüklənə bilmədi');
+  const result = await response.json();
+  return result.data;
 }
 
 const STATUS_COLORS = {
@@ -63,11 +34,11 @@ const STATUS_COLORS = {
 } as const;
 
 const STATUS_LABELS = {
-  pending: 'Ausstehend',
-  confirmed: 'Bestätigt',
-  in_progress: 'In Bearbeitung',
-  completed: 'Abgeschlossen',
-  cancelled: 'Storniert',
+  pending: 'Gözləyən',
+  confirmed: 'Təsdiqlənmiş',
+  in_progress: 'İcrada',
+  completed: 'Tamamlanmış',
+  cancelled: 'Ləğv edilmiş',
 };
 
 function StatCard({
@@ -134,23 +105,23 @@ export default function DashboardPage() {
   return (
     <Box>
       <Typography variant="h4" sx={{ mb: 3, fontWeight: 700 }}>
-        Dashboard
+        İdarə Paneli
       </Typography>
 
       {/* Statistics Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Total Bookings"
+            title="Cəmi Sifarişlər"
             value={statsLoading ? '...' : stats?.totalBookings || 0}
             icon={BookOnline}
             color="#8a4fff"
-            change="+12% vs letzter Monat"
+            change={stats?.bookingsChange ? `${stats.bookingsChange}% vs keçən ay` : undefined}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Pending Bookings"
+            title="Gözləyən"
             value={statsLoading ? '...' : stats?.pendingBookings || 0}
             icon={HourglassEmpty}
             color="#FF9800"
@@ -158,20 +129,19 @@ export default function DashboardPage() {
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Completed"
+            title="Tamamlanmış"
             value={statsLoading ? '...' : stats?.completedBookings || 0}
             icon={CheckCircle}
             color="#4CAF50"
-            change="+8% vs letzter Monat"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Revenue (Monat)"
-            value={statsLoading ? '...' : `€${stats?.monthlyRevenue.toLocaleString()}`}
+            title="Gəlir (Ay)"
+            value={statsLoading ? '...' : `€${(stats?.totalRevenue || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
             icon={TrendingUp}
             color="#2196F3"
-            change="+10.5%"
+            change={stats?.revenueChange ? `${stats.revenueChange}% vs keçən ay` : undefined}
           />
         </Grid>
       </Grid>
@@ -182,17 +152,17 @@ export default function DashboardPage() {
           <Card>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-                Letzte Buchungen
+                Son Sifarişlər
               </Typography>
               <TableContainer>
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Buchungsnr.</TableCell>
-                      <TableCell>Kunde</TableCell>
-                      <TableCell>Service</TableCell>
-                      <TableCell>Termin</TableCell>
-                      <TableCell>Preis</TableCell>
+                      <TableCell>Sifariş №</TableCell>
+                      <TableCell>Müştəri</TableCell>
+                      <TableCell>Xidmət</TableCell>
+                      <TableCell>Tarix</TableCell>
+                      <TableCell>Qiymət</TableCell>
                       <TableCell>Status</TableCell>
                     </TableRow>
                   </TableHead>
@@ -200,13 +170,13 @@ export default function DashboardPage() {
                     {bookingsLoading ? (
                       <TableRow>
                         <TableCell colSpan={6} align="center">
-                          Laden...
+                          Yüklənir...
                         </TableCell>
                       </TableRow>
                     ) : recentBookings?.items.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={6} align="center">
-                          Keine Buchungen vorhanden
+                          Heç bir sifariş tapılmadı
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -229,17 +199,17 @@ export default function DashboardPage() {
                           </TableCell>
                           <TableCell>
                             <Typography variant="body2">
-                              {booking.service.name_de}
+                              {booking.service?.name_de || '-'}
                             </Typography>
                           </TableCell>
                           <TableCell>
                             <Typography variant="body2">
-                              {formatDate(booking.booking_date)}
+                              {formatDate(booking.created_at)}
                             </Typography>
                           </TableCell>
                           <TableCell>
                             <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                              {booking.estimated_price}
+                              {booking.final_price ? formatPrice(booking.final_price) : booking.estimated_price || '-'}
                             </Typography>
                           </TableCell>
                           <TableCell>

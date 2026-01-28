@@ -31,14 +31,14 @@ const DRAWER_WIDTH = 260;
 const DRAWER_WIDTH_COLLAPSED = 80;
 
 const menuItems = [
-  { title: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-  { title: 'Services', icon: <BuildIcon />, path: '/dashboard/services' },
-  { title: 'Categories', icon: <CategoryIcon />, path: '/dashboard/categories' },
-  { title: 'Brands & Models', icon: <LabelIcon />, path: '/dashboard/brands' },
-  { title: 'Bookings', icon: <BookingIcon />, path: '/dashboard/bookings' },
-  { title: 'Content', icon: <ContentIcon />, path: '/dashboard/content' },
-  { title: 'Settings', icon: <SettingsIcon />, path: '/dashboard/settings' },
-  { title: 'Users', icon: <PeopleIcon />, path: '/dashboard/users' },
+  { title: 'İdarə Paneli', icon: <DashboardIcon />, path: '/dashboard' },
+  { title: 'Xidmətlər', icon: <BuildIcon />, path: '/dashboard/services' },
+  { title: 'Kateqoriyalar', icon: <CategoryIcon />, path: '/dashboard/categories' },
+  { title: 'Markalar və Modellər', icon: <LabelIcon />, path: '/dashboard/brands' },
+  { title: 'Sifarişlər', icon: <BookingIcon />, path: '/dashboard/bookings' },
+  { title: 'Məzmun', icon: <ContentIcon />, path: '/dashboard/content' },
+  { title: 'Parametrlər', icon: <SettingsIcon />, path: '/dashboard/settings' },
+  { title: 'İstifadəçilər', icon: <PeopleIcon />, path: '/dashboard/users' },
 ];
 
 interface SidebarProps {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -25,91 +25,166 @@ import {
   Edit,
   Delete,
   Search,
-  DragIndicator,
+  ArrowUpward,
+  ArrowDownward,
 } from '@mui/icons-material';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import CategoryForm from '@/components/forms/CategoryForm';
 
-// Mock API call - replace with real API
-async function fetchCategories() {
-  // Simulate API call
-  return {
-    items: [
-      {
-        id: '1',
-        name_de: 'Telefon',
-        slug: 'phone',
-        icon: 'fa-solid fa-mobile',
-        description_de: 'Smartphone Reparatur & Service',
-        badge: 'Popular',
-        display_order: 1,
-        is_active: true,
-      },
-      {
-        id: '2',
-        name_de: 'PlayStation',
-        slug: 'playstation',
-        icon: 'fa-brands fa-playstation',
-        description_de: 'PlayStation Konsolen Reparatur',
-        badge: 'Hot',
-        display_order: 2,
-        is_active: true,
-      },
-      {
-        id: '3',
-        name_de: 'Apple macOS',
-        slug: 'macos',
-        icon: 'fa-brands fa-apple',
-        description_de: 'MacBook & iMac Service',
-        badge: null,
-        display_order: 3,
-        is_active: true,
-      },
-      {
-        id: '4',
-        name_de: 'Notebook & Laptops',
-        slug: 'notebook',
-        icon: 'fa-solid fa-laptop',
-        description_de: 'Notebook Reparatur & Upgrade',
-        badge: null,
-        display_order: 4,
-        is_active: true,
-      },
-      {
-        id: '5',
-        name_de: 'Desktop Computer',
-        slug: 'desktop',
-        icon: 'fa-solid fa-desktop',
-        description_de: 'PC Reparatur & Service',
-        badge: null,
-        display_order: 5,
-        is_active: true,
-      },
-    ],
-    pagination: {
-      total: 5,
-      page: 1,
-      total_pages: 1,
-    },
-  };
+// Real API call
+async function fetchCategories(searchQuery: string) {
+  const params = new URLSearchParams();
+  params.append('include_inactive', 'true'); // Admin paneldə hamısını göstər
+  
+  const response = await fetch(`/api/v1/categories?${params.toString()}`, {
+    cache: 'no-store',
+  });
+  
+  if (!response.ok) {
+    throw new Error('Kateqoriyaları yükləmək alınmadı');
+  }
+  
+  const result = await response.json();
+  
+  if (!result.success) {
+    throw new Error(result.error?.message || 'Kateqoriyaları yükləmək alınmadı');
+  }
+  
+  // Client-side search filter
+  let items = result.data.items;
+  if (searchQuery && searchQuery.trim()) {
+    const query = searchQuery.toLowerCase();
+    items = items.filter((cat: any) => 
+      cat.name_de?.toLowerCase().includes(query) ||
+      cat.name_en?.toLowerCase().includes(query) ||
+      cat.slug?.toLowerCase().includes(query)
+    );
+  }
+  
+  return { items };
 }
 
 export default function CategoriesPage() {
+  const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
 
-  const { data, isLoading } = useQuery({
+  const queryClient = useQueryClient();
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInput);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const { data, isLoading, error } = useQuery({
     queryKey: ['categories', searchQuery],
-    queryFn: fetchCategories,
+    queryFn: () => fetchCategories(searchQuery),
   });
 
-  const handleDelete = (id: string) => {
-    if (confirm('Kategorie wirklich löschen?')) {
-      toast.success('Kategorie gelöscht');
+  const handleFormSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['categories'] });
+  };
+
+  const handleEdit = (category: any) => {
+    setSelectedCategory(category);
+    setFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setFormOpen(false);
+    setSelectedCategory(null);
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`"${name}" kateqoriyasını silmək istədiyinizdən əminsiniz?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/v1/categories/${id}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error?.message || 'Silmə zamanı xəta');
+      }
+
+      toast.success(result.message || 'Kateqoriya uğurla silindi');
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error(error instanceof Error ? error.message : 'Xəta baş verdi');
     }
   };
 
-  const handleToggleActive = (id: string) => {
-    toast.success('Status aktualisiert');
+  const handleToggleActive = async (id: string, currentStatus: boolean) => {
+    try {
+      const response = await fetch(`/api/v1/categories/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: !currentStatus }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error?.message || 'Status yeniləmə zamanı xəta');
+      }
+
+      toast.success('Status uğurla yeniləndi');
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    } catch (error) {
+      console.error('Toggle error:', error);
+      toast.error(error instanceof Error ? error.message : 'Xəta baş verdi');
+    }
+  };
+
+  const handleReorder = async (categoryId: string, newOrder: number) => {
+    try {
+      const response = await fetch(`/api/v1/categories/${categoryId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ display_order: newOrder }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error?.message || 'Sıralama yeniləmə zamanı xəta');
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    } catch (error) {
+      console.error('Reorder error:', error);
+      toast.error(error instanceof Error ? error.message : 'Xəta baş verdi');
+    }
+  };
+
+  const moveUp = (category: any, index: number) => {
+    if (index === 0) return;
+    const prevCategory = data?.items[index - 1];
+    if (prevCategory) {
+      handleReorder(category.id, prevCategory.display_order);
+      handleReorder(prevCategory.id, category.display_order);
+      toast.success('Sıralama yeniləndi');
+    }
+  };
+
+  const moveDown = (category: any, index: number) => {
+    if (!data?.items || index === data.items.length - 1) return;
+    const nextCategory = data.items[index + 1];
+    if (nextCategory) {
+      handleReorder(category.id, nextCategory.display_order);
+      handleReorder(nextCategory.id, category.display_order);
+      toast.success('Sıralama yeniləndi');
+    }
   };
 
   return (
@@ -117,14 +192,14 @@ export default function CategoriesPage() {
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
-          Service Kategorien
+          Xidmət Kateqoriyaları
         </Typography>
         <Button
           variant="contained"
           startIcon={<Add />}
-          onClick={() => toast.info('Kategorie hinzufügen Modal öffnen')}
+          onClick={() => setFormOpen(true)}
         >
-          Kategorie hinzufügen
+          Kateqoriya əlavə et
         </Button>
       </Box>
 
@@ -132,9 +207,9 @@ export default function CategoriesPage() {
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <TextField
-            placeholder="Kategorie suchen..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Kateqoriya axtar..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             InputProps={{
               startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />,
             }}
@@ -149,38 +224,62 @@ export default function CategoriesPage() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell width={50}>
-                  <DragIndicator sx={{ color: 'text.disabled' }} />
-                </TableCell>
-                <TableCell>Icon</TableCell>
-                <TableCell>Name</TableCell>
+                <TableCell width={80}>Sıra</TableCell>
+                <TableCell>İkon</TableCell>
+                <TableCell>Ad</TableCell>
                 <TableCell>Slug</TableCell>
-                <TableCell>Badge</TableCell>
-                <TableCell>Beschreibung</TableCell>
+                <TableCell>Nişan</TableCell>
+                <TableCell>Təsvir</TableCell>
                 <TableCell>Status</TableCell>
-                <TableCell align="right">Aktionen</TableCell>
+                <TableCell align="right">Əməliyyatlar</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={8} align="center">
-                    Laden...
+                    Yüklənir...
+                  </TableCell>
+                </TableRow>
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={8} align="center" sx={{ color: 'error.main' }}>
+                    Kateqoriyaları yükləmə zamanı xəta: {error instanceof Error ? error.message : 'Naməlum xəta'}
                   </TableCell>
                 </TableRow>
               ) : data?.items.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} align="center">
-                    Keine Kategorien gefunden
+                    Heç bir kateqoriya tapılmadı
                   </TableCell>
                 </TableRow>
               ) : (
-                data?.items.map((category) => (
+                data?.items.map((category, index) => (
                   <TableRow key={category.id} hover>
                     <TableCell>
-                      <IconButton size="small" sx={{ cursor: 'grab' }}>
-                        <DragIndicator fontSize="small" />
-                      </IconButton>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, minWidth: 24 }}>
+                          {category.display_order}
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                          <IconButton 
+                            size="small" 
+                            onClick={() => moveUp(category, index)}
+                            disabled={index === 0}
+                            sx={{ p: 0.25 }}
+                          >
+                            <ArrowUpward fontSize="small" />
+                          </IconButton>
+                          <IconButton 
+                            size="small" 
+                            onClick={() => moveDown(category, index)}
+                            disabled={index === (data?.items.length || 0) - 1}
+                            sx={{ p: 0.25 }}
+                          >
+                            <ArrowDownward fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </Box>
                     </TableCell>
                     <TableCell>
                       <Avatar
@@ -222,21 +321,21 @@ export default function CategoriesPage() {
                     <TableCell>
                       <Switch
                         checked={category.is_active}
-                        onChange={() => handleToggleActive(category.id)}
+                        onChange={() => handleToggleActive(category.id, category.is_active)}
                         size="small"
                       />
                     </TableCell>
                     <TableCell align="right">
                       <IconButton
                         size="small"
-                        onClick={() => toast.info('Bearbeiten')}
+                        onClick={() => handleEdit(category)}
                       >
                         <Edit fontSize="small" />
                       </IconButton>
                       <IconButton
                         size="small"
                         color="error"
-                        onClick={() => handleDelete(category.id)}
+                        onClick={() => handleDelete(category.id, category.name_de)}
                       >
                         <Delete fontSize="small" />
                       </IconButton>
@@ -248,6 +347,14 @@ export default function CategoriesPage() {
           </Table>
         </TableContainer>
       </Card>
+
+      {/* Category Form Modal */}
+      <CategoryForm
+        open={formOpen}
+        onClose={handleCloseForm}
+        onSuccess={handleFormSuccess}
+        category={selectedCategory}
+      />
     </Box>
   );
 }

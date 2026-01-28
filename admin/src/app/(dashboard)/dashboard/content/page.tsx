@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -17,6 +17,7 @@ import {
   TableRow,
   IconButton,
   Chip,
+  CircularProgress,
 } from '@mui/material';
 import {
   Add,
@@ -25,99 +26,131 @@ import {
   Search,
   Language,
 } from '@mui/icons-material';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { formatDateTime } from '@/lib/utils/format';
+import ContentForm from '@/components/forms/ContentForm';
 
-// Mock API call
-async function fetchContentPages() {
-  return {
-    items: [
-      {
-        id: '1',
-        page_slug: 'home',
-        section_key: 'hero_title',
-        content_de: 'Professioneller Reparatur-Service',
-        content_en: 'Professional Repair Service',
-        content_type: 'text',
-        updated_at: '2026-01-28T10:00:00Z',
-        updated_by: { full_name: 'Admin User' },
-      },
-      {
-        id: '2',
-        page_slug: 'home',
-        section_key: 'hero_subtitle',
-        content_de: 'Schnell, zuverlässig und günstig',
-        content_en: 'Fast, reliable and affordable',
-        content_type: 'text',
-        updated_at: '2026-01-28T09:30:00Z',
-        updated_by: { full_name: 'Admin User' },
-      },
-      {
-        id: '3',
-        page_slug: 'about',
-        section_key: 'company_description',
-        content_de: 'Wir sind Ihr zuverlässiger Partner für Reparaturen aller Art...',
-        content_en: 'We are your reliable partner for repairs of all kinds...',
-        content_type: 'html',
-        updated_at: '2026-01-27T14:20:00Z',
-        updated_by: { full_name: 'Admin User' },
-      },
-      {
-        id: '4',
-        page_slug: 'contact',
-        section_key: 'business_hours',
-        content_de: 'Mo-Fr: 9:00-18:00 Uhr',
-        content_en: 'Mon-Fri: 9:00-18:00',
-        content_type: 'text',
-        updated_at: '2026-01-26T11:00:00Z',
-        updated_by: { full_name: 'Admin User' },
-      },
-    ],
-    pagination: {
-      total: 4,
-      page: 1,
-      total_pages: 1,
-    },
-  };
+// ============================================
+// API FUNCTIONS
+// ============================================
+
+async function fetchContentPages(searchQuery: string, pageFilter: string) {
+  const params = new URLSearchParams();
+  if (pageFilter && pageFilter !== 'all') {
+    params.append('page_slug', pageFilter);
+  }
+  if (searchQuery && searchQuery.trim()) {
+    params.append('search', searchQuery.trim());
+  }
+
+  const response = await fetch(`/api/v1/content?${params.toString()}`);
+  if (!response.ok) throw new Error('Məzmun yüklənə bilmədi');
+  const result = await response.json();
+  return result.data;
 }
 
-const CONTENT_TYPE_COLORS = {
-  text: 'default',
-  html: 'primary',
-  json: 'secondary',
-  markdown: 'info',
-} as const;
+// ============================================
+// HELPERS
+// ============================================
 
-export default function ContentPage() {
+const CONTENT_TYPE_LABELS: Record<string, string> = {
+  text: 'Mətn',
+  html: 'HTML',
+  markdown: 'Markdown',
+  json: 'JSON',
+};
+
+function formatDateTime(dateString: string | null) {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('az-AZ', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+}
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
+
+export default function ContentPagesPage() {
+  const queryClient = useQueryClient();
+
+  // States
+  const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [pageFilter, setPageFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
+  const [formOpen, setFormOpen] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<any>(null);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['content', searchQuery, pageFilter, typeFilter],
-    queryFn: fetchContentPages,
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => setSearchQuery(searchInput), 500);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Fetch content pages
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['content-pages', searchQuery, pageFilter],
+    queryFn: () => fetchContentPages(searchQuery, pageFilter),
   });
 
-  const handleDelete = (id: string) => {
-    if (confirm('Content wirklich löschen?')) {
-      toast.success('Content gelöscht');
+  // Extract unique page slugs for filter
+  const pageOptions = Array.from(
+    new Set(data?.items?.map((item: any) => item.page_slug) || [])
+  ).sort();
+
+  // ========== HANDLERS ==========
+  const handleEdit = (content: any) => {
+    setSelectedContent(content);
+    setFormOpen(true);
+  };
+
+  const handleFormSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['content-pages'] });
+  };
+
+  const handleCloseForm = () => {
+    setFormOpen(false);
+    setSelectedContent(null);
+  };
+
+  const handleDelete = async (id: string, pageSlug: string, sectionKey: string) => {
+    if (!confirm(`"${pageSlug} / ${sectionKey}" məzmununu silmək istədiyinizdən əminsiniz?`)) return;
+
+    try {
+      const response = await fetch(`/api/v1/content/${id}`, { method: 'DELETE' });
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error?.message || 'Silmə zamanı xəta');
+      }
+
+      toast.success('Məzmun uğurla silindi');
+      queryClient.invalidateQueries({ queryKey: ['content-pages'] });
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error(error instanceof Error ? error.message : 'Xəta baş verdi');
     }
   };
 
+  // ========== RENDER ==========
   return (
     <Box>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
-          Content Management
+          Məzmun İdarəsi
         </Typography>
         <Button
           variant="contained"
           startIcon={<Add />}
-          onClick={() => toast.info('Content hinzufügen Modal öffnen')}
+          onClick={() => setFormOpen(true)}
         >
-          Content hinzufügen
+          Məzmun əlavə et
         </Button>
       </Box>
 
@@ -126,39 +159,27 @@ export default function ContentPage() {
         <CardContent>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
             <TextField
-              placeholder="Content suchen (Seite, Section)..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Səhifə, bölmə və ya məzmun axtar..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               InputProps={{
                 startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />,
               }}
-              sx={{ flex: 1, minWidth: 250 }}
+              sx={{ flex: 1, minWidth: 300 }}
             />
             <TextField
               select
-              label="Seite"
+              label="Səhifə"
               value={pageFilter}
               onChange={(e) => setPageFilter(e.target.value)}
               sx={{ minWidth: 200 }}
             >
-              <MenuItem value="all">Alle Seiten</MenuItem>
-              <MenuItem value="home">Home</MenuItem>
-              <MenuItem value="about">Über uns</MenuItem>
-              <MenuItem value="services">Services</MenuItem>
-              <MenuItem value="contact">Kontakt</MenuItem>
-            </TextField>
-            <TextField
-              select
-              label="Typ"
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              sx={{ minWidth: 150 }}
-            >
-              <MenuItem value="all">Alle Typen</MenuItem>
-              <MenuItem value="text">Text</MenuItem>
-              <MenuItem value="html">HTML</MenuItem>
-              <MenuItem value="json">JSON</MenuItem>
-              <MenuItem value="markdown">Markdown</MenuItem>
+              <MenuItem value="all">Bütün səhifələr</MenuItem>
+              {pageOptions.map((page: string) => (
+                <MenuItem key={page} value={page}>
+                  {page}
+                </MenuItem>
+              ))}
             </TextField>
           </Box>
         </CardContent>
@@ -170,85 +191,99 @@ export default function ContentPage() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Seite / Section</TableCell>
-                <TableCell>Content (DE)</TableCell>
-                <TableCell>Content (EN)</TableCell>
-                <TableCell>Typ</TableCell>
-                <TableCell>Zuletzt bearbeitet</TableCell>
-                <TableCell align="right">Aktionen</TableCell>
+                <TableCell>Səhifə</TableCell>
+                <TableCell>Bölmə</TableCell>
+                <TableCell>Məzmun (DE)</TableCell>
+                <TableCell>Məzmun (EN)</TableCell>
+                <TableCell>Tip</TableCell>
+                <TableCell>Son yeniləmə</TableCell>
+                <TableCell align="right">Əməliyyatlar</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    Laden...
+                  <TableCell colSpan={7} align="center">
+                    <CircularProgress size={24} />
+                  </TableCell>
+                </TableRow>
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={7} align="center" sx={{ color: 'error.main' }}>
+                    Xəta: {error instanceof Error ? error.message : 'Məlumatlar yüklənə bilmədi'}
                   </TableCell>
                 </TableRow>
               ) : data?.items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    Kein Content gefunden
+                  <TableCell colSpan={7} align="center">
+                    Heç bir məzmun tapılmadı
                   </TableCell>
                 </TableRow>
               ) : (
-                data?.items.map((content) => (
+                data?.items.map((content: any) => (
                   <TableRow key={content.id} hover>
                     <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {content.page_slug}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
+                      <Chip
+                        label={content.page_slug}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
                         {content.section_key}
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography
                         variant="body2"
-                        noWrap
-                        sx={{ maxWidth: 250 }}
+                        sx={{
+                          maxWidth: 200,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
                       >
-                        {content.content_de}
+                        {content.content_de || '-'}
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <Language fontSize="small" sx={{ color: 'text.secondary' }} />
-                        <Typography
-                          variant="body2"
-                          noWrap
-                          sx={{ maxWidth: 250 }}
-                        >
-                          {content.content_en || '-'}
-                        </Typography>
-                      </Box>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          maxWidth: 200,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {content.content_en || '-'}
+                      </Typography>
                     </TableCell>
                     <TableCell>
                       <Chip
-                        label={content.content_type}
+                        label={CONTENT_TYPE_LABELS[content.content_type] || content.content_type}
                         size="small"
-                        color={CONTENT_TYPE_COLORS[content.content_type as keyof typeof CONTENT_TYPE_COLORS]}
+                        variant="outlined"
                       />
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2">
+                      <Typography variant="caption" sx={{ display: 'block' }}>
                         {formatDateTime(content.updated_at)}
                       </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        von {content.updated_by?.full_name}
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        {content.updated_by_user?.full_name || '-'}
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
-                      <IconButton
-                        size="small"
-                        onClick={() => toast.info('Bearbeiten')}
-                      >
+                      <IconButton size="small" color="primary" onClick={() => handleEdit(content)}>
                         <Edit fontSize="small" />
                       </IconButton>
                       <IconButton
                         size="small"
                         color="error"
-                        onClick={() => handleDelete(content.id)}
+                        onClick={() => handleDelete(content.id, content.page_slug, content.section_key)}
                       >
                         <Delete fontSize="small" />
                       </IconButton>
@@ -260,6 +295,14 @@ export default function ContentPage() {
           </Table>
         </TableContainer>
       </Card>
+
+      {/* FORM */}
+      <ContentForm
+        open={formOpen}
+        onClose={handleCloseForm}
+        onSuccess={handleFormSuccess}
+        content={selectedContent}
+      />
     </Box>
   );
 }

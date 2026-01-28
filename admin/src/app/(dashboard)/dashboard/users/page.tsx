@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -19,6 +19,7 @@ import {
   Chip,
   Switch,
   Avatar,
+  CircularProgress,
 } from '@mui/material';
 import {
   Add,
@@ -27,124 +28,142 @@ import {
   Search,
   AdminPanelSettings,
   Build,
-  Person,
 } from '@mui/icons-material';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import UserForm from '@/components/forms/UserForm';
 import { formatDateTime, getInitials } from '@/lib/utils/format';
 
-// Mock API call
-async function fetchUsers() {
-  return {
-    items: [
-      {
-        id: '1',
-        email: 'admin@moodit.at',
-        full_name: 'Admin User',
-        role: 'admin',
-        phone: '+994 50 555 55 55',
-        avatar_url: null,
-        is_active: true,
-        last_login_at: '2026-01-28T14:30:00Z',
-        created_at: '2026-01-28T09:17:17Z',
-      },
-      {
-        id: '2',
-        email: 'tech1@moodit.at',
-        full_name: 'Max Techniker',
-        role: 'technician',
-        phone: '+994 50 123 45 67',
-        avatar_url: null,
-        is_active: true,
-        last_login_at: '2026-01-27T16:45:00Z',
-        created_at: '2026-01-20T10:00:00Z',
-      },
-      {
-        id: '3',
-        email: 'tech2@moodit.at',
-        full_name: 'Anna Technikerin',
-        role: 'technician',
-        phone: '+994 55 987 65 43',
-        avatar_url: null,
-        is_active: true,
-        last_login_at: '2026-01-28T09:15:00Z',
-        created_at: '2026-01-22T14:30:00Z',
-      },
-      {
-        id: '4',
-        email: 'old.tech@moodit.at',
-        full_name: 'Peter Alt',
-        role: 'technician',
-        phone: null,
-        avatar_url: null,
-        is_active: false,
-        last_login_at: '2025-12-15T11:20:00Z',
-        created_at: '2025-11-01T08:00:00Z',
-      },
-    ],
-    pagination: {
-      total: 4,
-      page: 1,
-      total_pages: 1,
-    },
-  };
+// ============================================
+// API FUNCTIONS
+// ============================================
+
+async function fetchUsers(searchQuery: string, roleFilter: string) {
+  const params = new URLSearchParams();
+  params.append('include_inactive', 'true');
+  if (roleFilter && roleFilter !== 'all') {
+    params.append('role', roleFilter);
+  }
+  if (searchQuery && searchQuery.trim()) {
+    params.append('search', searchQuery.trim());
+  }
+
+  const response = await fetch(`/api/v1/users?${params.toString()}`);
+  if (!response.ok) throw new Error('İstifadəçilər yüklənə bilmədi');
+  const result = await response.json();
+  return result.data;
 }
 
-const ROLE_CONFIG = {
-  admin: {
-    label: 'Administrator',
-    icon: AdminPanelSettings,
-    color: 'error' as const,
-  },
-  technician: {
-    label: 'Techniker',
-    icon: Build,
-    color: 'primary' as const,
-  },
-  customer: {
-    label: 'Kunde',
-    icon: Person,
-    color: 'default' as const,
-  },
+// ============================================
+// HELPERS
+// ============================================
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: 'Admin',
+  technician: 'Texnik',
 };
 
+const ROLE_ICONS: Record<string, any> = {
+  admin: AdminPanelSettings,
+  technician: Build,
+};
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
+
 export default function UsersPage() {
+  const queryClient = useQueryClient();
+
+  // States
+  const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [formOpen, setFormOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['users', searchQuery, roleFilter, statusFilter],
-    queryFn: fetchUsers,
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => setSearchQuery(searchInput), 500);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Fetch users
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['users', searchQuery, roleFilter],
+    queryFn: () => fetchUsers(searchQuery, roleFilter),
   });
 
-  const handleDelete = (id: string) => {
-    if (confirm('Benutzer wirklich löschen?')) {
-      toast.success('Benutzer gelöscht');
+  // ========== HANDLERS ==========
+  const handleEdit = (user: any) => {
+    setSelectedUser(user);
+    setFormOpen(true);
+  };
+
+  const handleFormSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['users'] });
+  };
+
+  const handleCloseForm = () => {
+    setFormOpen(false);
+    setSelectedUser(null);
+  };
+
+  const handleToggleActive = async (id: string, currentStatus: boolean) => {
+    try {
+      const response = await fetch(`/api/v1/users/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: !currentStatus }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error?.message || 'Status yeniləmə zamanı xəta');
+      }
+
+      toast.success('Status uğurla yeniləndi');
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    } catch (error) {
+      console.error('Toggle error:', error);
+      toast.error(error instanceof Error ? error.message : 'Xəta baş verdi');
     }
   };
 
-  const handleToggleActive = (id: string) => {
-    toast.success('Status aktualisiert');
+  const handleDelete = async (id: string, fullName: string) => {
+    if (!confirm(`"${fullName}" istifadəçisini silmək istədiyinizdən əminsiniz?\n\nBu əməliyyat geri alına bilməz!`)) return;
+
+    try {
+      const response = await fetch(`/api/v1/users/${id}`, { method: 'DELETE' });
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error?.message || 'Silmə zamanı xəta');
+      }
+
+      toast.success('İstifadəçi uğurla silindi');
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error(error instanceof Error ? error.message : 'Xəta baş verdi');
+    }
   };
 
-  const handleResetPassword = (email: string) => {
-    toast.success(`Passwort-Reset-Link an ${email} gesendet`);
-  };
-
+  // ========== RENDER ==========
   return (
     <Box>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
-          Benutzerverwaltung
+          İstifadəçilər
         </Typography>
         <Button
           variant="contained"
           startIcon={<Add />}
-          onClick={() => toast.info('Benutzer hinzufügen Modal öffnen')}
+          onClick={() => setFormOpen(true)}
         >
-          Benutzer hinzufügen
+          İstifadəçi əlavə et
         </Button>
       </Box>
 
@@ -153,9 +172,9 @@ export default function UsersPage() {
         <CardContent>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
             <TextField
-              placeholder="Benutzer suchen (Name, E-Mail)..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Ad, e-poçt axtar..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               InputProps={{
                 startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />,
               }}
@@ -163,26 +182,14 @@ export default function UsersPage() {
             />
             <TextField
               select
-              label="Rolle"
+              label="Rol"
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
               sx={{ minWidth: 200 }}
             >
-              <MenuItem value="all">Alle Rollen</MenuItem>
-              <MenuItem value="admin">Administrator</MenuItem>
-              <MenuItem value="technician">Techniker</MenuItem>
-              <MenuItem value="customer">Kunde</MenuItem>
-            </TextField>
-            <TextField
-              select
-              label="Status"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              sx={{ minWidth: 150 }}
-            >
-              <MenuItem value="all">Alle</MenuItem>
-              <MenuItem value="active">Aktiv</MenuItem>
-              <MenuItem value="inactive">Inaktiv</MenuItem>
+              <MenuItem value="all">Hamısı</MenuItem>
+              <MenuItem value="admin">Admin</MenuItem>
+              <MenuItem value="technician">Texnik</MenuItem>
             </TextField>
           </Box>
         </CardContent>
@@ -194,43 +201,47 @@ export default function UsersPage() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Benutzer</TableCell>
-                <TableCell>E-Mail</TableCell>
-                <TableCell>Rolle</TableCell>
+                <TableCell>İstifadəçi</TableCell>
+                <TableCell>E-poçt</TableCell>
+                <TableCell>Rol</TableCell>
                 <TableCell>Telefon</TableCell>
-                <TableCell>Letzter Login</TableCell>
                 <TableCell>Status</TableCell>
-                <TableCell align="right">Aktionen</TableCell>
+                <TableCell>Qeydiyyat</TableCell>
+                <TableCell align="right">Əməliyyatlar</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={7} align="center">
-                    Laden...
+                    <CircularProgress size={24} />
+                  </TableCell>
+                </TableRow>
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={7} align="center" sx={{ color: 'error.main' }}>
+                    Xəta: {error instanceof Error ? error.message : 'Məlumatlar yüklənə bilmədi'}
                   </TableCell>
                 </TableRow>
               ) : data?.items.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} align="center">
-                    Keine Benutzer gefunden
+                    Heç bir istifadəçi tapılmadı
                   </TableCell>
                 </TableRow>
               ) : (
-                data?.items.map((user) => {
-                  const roleConfig = ROLE_CONFIG[user.role as keyof typeof ROLE_CONFIG];
-                  const RoleIcon = roleConfig.icon;
-
+                data?.items.map((user: any) => {
+                  const RoleIcon = ROLE_ICONS[user.role] || Build;
                   return (
                     <TableRow key={user.id} hover>
                       <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                           <Avatar
-                            src={user.avatar_url || undefined}
+                            src={user.avatar_url}
                             sx={{
                               width: 40,
                               height: 40,
-                              bgcolor: user.role === 'admin' ? 'error.main' : 'primary.main',
+                              bgcolor: user.role === 'admin' ? 'primary.main' : 'secondary.main',
                             }}
                           >
                             {getInitials(user.full_name)}
@@ -239,54 +250,42 @@ export default function UsersPage() {
                             <Typography variant="body2" sx={{ fontWeight: 600 }}>
                               {user.full_name}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              Erstellt: {formatDateTime(user.created_at)}
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                              ID: {user.id.slice(0, 8)}...
                             </Typography>
                           </Box>
                         </Box>
                       </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">{user.email}</Typography>
-                      </TableCell>
+                      <TableCell>{user.email}</TableCell>
                       <TableCell>
                         <Chip
-                          icon={<RoleIcon sx={{ fontSize: 16 }} />}
-                          label={roleConfig.label}
+                          icon={<RoleIcon fontSize="small" />}
+                          label={ROLE_LABELS[user.role] || user.role}
                           size="small"
-                          color={roleConfig.color}
+                          color={user.role === 'admin' ? 'primary' : 'secondary'}
                         />
                       </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {user.phone || '-'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {user.last_login_at
-                            ? formatDateTime(user.last_login_at)
-                            : 'Noch nie'}
-                        </Typography>
-                      </TableCell>
+                      <TableCell>{user.phone || '-'}</TableCell>
                       <TableCell>
                         <Switch
                           checked={user.is_active}
-                          onChange={() => handleToggleActive(user.id)}
+                          onChange={() => handleToggleActive(user.id, user.is_active)}
                           size="small"
                         />
                       </TableCell>
+                      <TableCell>
+                        <Typography variant="caption" sx={{ display: 'block' }}>
+                          {formatDateTime(user.created_at)}
+                        </Typography>
+                      </TableCell>
                       <TableCell align="right">
-                        <IconButton
-                          size="small"
-                          onClick={() => toast.info('Bearbeiten')}
-                        >
+                        <IconButton size="small" color="primary" onClick={() => handleEdit(user)}>
                           <Edit fontSize="small" />
                         </IconButton>
                         <IconButton
                           size="small"
                           color="error"
-                          onClick={() => handleDelete(user.id)}
-                          disabled={user.role === 'admin'}
+                          onClick={() => handleDelete(user.id, user.full_name)}
                         >
                           <Delete fontSize="small" />
                         </IconButton>
@@ -299,6 +298,14 @@ export default function UsersPage() {
           </Table>
         </TableContainer>
       </Card>
+
+      {/* FORM */}
+      <UserForm
+        open={formOpen}
+        onClose={handleCloseForm}
+        onSuccess={handleFormSuccess}
+        user={selectedUser}
+      />
     </Box>
   );
 }

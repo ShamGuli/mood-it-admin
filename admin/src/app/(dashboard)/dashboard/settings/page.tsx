@@ -1,276 +1,474 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
+  Button,
   Card,
   CardContent,
   Typography,
   TextField,
-  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   Grid,
-  Divider,
+  MenuItem,
   Switch,
   FormControlLabel,
-  Alert,
+  CircularProgress,
 } from '@mui/material';
 import {
+  Add,
+  Edit,
+  Delete,
+  Search,
   Save,
-  Business,
-  Email,
-  Phone,
-  Public,
-  Security,
-  Notifications,
 } from '@mui/icons-material';
-import { useForm } from 'react-hook-form';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { toast } from 'sonner';
 
-const settingsSchema = z.object({
-  business_name: z.string().min(1, 'Geschäftsname ist erforderlich'),
-  business_email: z.string().email('Ungültige E-Mail'),
-  business_phone: z.string().min(1, 'Telefonnummer ist erforderlich'),
-  business_whatsapp: z.string().optional(),
-  business_address: z.string().optional(),
-  website_url: z.string().url('Ungültige URL').optional().or(z.literal('')),
-  booking_confirmation_email: z.boolean(),
-  booking_reminder_email: z.boolean(),
-  booking_reminder_hours: z.number().min(1).max(48),
-  maintenance_mode: z.boolean(),
-  allow_online_booking: z.boolean(),
-  require_email_verification: z.boolean(),
+// ============================================
+// API FUNCTIONS
+// ============================================
+
+async function fetchSettings(searchQuery: string) {
+  const params = new URLSearchParams();
+  if (searchQuery && searchQuery.trim()) {
+    params.append('search', searchQuery.trim());
+  }
+
+  const response = await fetch(`/api/v1/settings?${params.toString()}`);
+  if (!response.ok) throw new Error('Parametrlər yüklənə bilmədi');
+  const result = await response.json();
+  return result.data;
+}
+
+// ============================================
+// ZOD SCHEMA
+// ============================================
+
+const settingSchema = z.object({
+  key: z.string().min(1, 'Açar mütləqdir').max(100).regex(/^[a-z0-9_]+$/, 'Açar yalnız kiçik hərflər, rəqəmlər və alt xətt ola bilər'),
+  value: z.string().optional().or(z.literal('')),
+  value_type: z.enum(['string', 'number', 'boolean', 'json']),
+  description: z.string().optional().or(z.literal('')),
+  is_public: z.boolean(),
 });
 
-type SettingsFormData = z.infer<typeof settingsSchema>;
+type SettingFormData = z.infer<typeof settingSchema>;
+
+// ============================================
+// HELPERS
+// ============================================
+
+const VALUE_TYPE_LABELS: Record<string, string> = {
+  string: 'Mətn',
+  number: 'Rəqəm',
+  boolean: 'Boolean',
+  json: 'JSON',
+};
+
+function formatDateTime(dateString: string | null) {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('az-AZ', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+}
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
 
 export default function SettingsPage() {
-  const [isSaving, setIsSaving] = useState(false);
+  const queryClient = useQueryClient();
+
+  // States
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
+  const [selectedSetting, setSelectedSetting] = useState<any>(null);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => setSearchQuery(searchInput), 500);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Fetch settings
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['settings', searchQuery],
+    queryFn: () => fetchSettings(searchQuery),
+  });
+
+  // Form
+  const isEditMode = !!selectedSetting;
 
   const {
-    register,
+    control,
     handleSubmit,
-    formState: { errors },
-    watch,
-  } = useForm<SettingsFormData>({
-    resolver: zodResolver(settingsSchema),
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<SettingFormData>({
+    resolver: zodResolver(settingSchema),
     defaultValues: {
-      business_name: 'Mood IT',
-      business_email: 'info@moodit.at',
-      business_phone: '+994 50 555 55 55',
-      business_whatsapp: '+994 55 220 10 18',
-      business_address: 'Musterstraße 123, 1010 Wien, Österreich',
-      website_url: 'https://moodit.at',
-      booking_confirmation_email: true,
-      booking_reminder_email: true,
-      booking_reminder_hours: 24,
-      maintenance_mode: false,
-      allow_online_booking: true,
-      require_email_verification: false,
+      key: '',
+      value: '',
+      value_type: 'string',
+      description: '',
+      is_public: false,
     },
   });
 
-  const maintenanceMode = watch('maintenance_mode');
+  // Pre-fill form in edit mode
+  useEffect(() => {
+    if (selectedSetting && formOpen) {
+      reset({
+        key: selectedSetting.key || '',
+        value: selectedSetting.value || '',
+        value_type: selectedSetting.value_type || 'string',
+        description: selectedSetting.description || '',
+        is_public: selectedSetting.is_public ?? false,
+      });
+    } else if (!selectedSetting && formOpen) {
+      reset({
+        key: '',
+        value: '',
+        value_type: 'string',
+        description: '',
+        is_public: false,
+      });
+    }
+  }, [selectedSetting, formOpen, reset]);
 
-  const onSubmit = async (data: SettingsFormData) => {
-    setIsSaving(true);
+  // ========== HANDLERS ==========
+  const handleEdit = (setting: any) => {
+    setSelectedSetting(setting);
+    setFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setFormOpen(false);
+    setSelectedSetting(null);
+  };
+
+  const onSubmit = async (data: SettingFormData) => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      toast.success('Einstellungen erfolgreich gespeichert');
+      const url = isEditMode ? `/api/v1/settings/${selectedSetting.key}` : '/api/v1/settings';
+      const method = isEditMode ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error?.message || 'Xəta baş verdi');
+      }
+
+      toast.success(isEditMode ? 'Parametr uğurla yeniləndi' : 'Parametr uğurla yaradıldı');
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
+      handleCloseForm();
     } catch (error) {
-      toast.error('Fehler beim Speichern der Einstellungen');
-    } finally {
-      setIsSaving(false);
+      console.error('Form submit error:', error);
+      toast.error(error instanceof Error ? error.message : 'Xəta baş verdi');
     }
   };
 
+  const handleDelete = async (key: string) => {
+    if (!confirm(`"${key}" parametrini silmək istədiyinizdən əminsiniz?`)) return;
+
+    try {
+      const response = await fetch(`/api/v1/settings/${key}`, { method: 'DELETE' });
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error?.message || 'Silmə zamanı xəta');
+      }
+
+      toast.success('Parametr uğurla silindi');
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error(error instanceof Error ? error.message : 'Xəta baş verdi');
+    }
+  };
+
+  // ========== RENDER ==========
   return (
     <Box>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
-          Einstellungen
+          Parametrlər
         </Typography>
         <Button
           variant="contained"
-          startIcon={<Save />}
-          onClick={handleSubmit(onSubmit)}
-          disabled={isSaving}
+          startIcon={<Add />}
+          onClick={() => setFormOpen(true)}
         >
-          {isSaving ? 'Speichern...' : 'Speichern'}
+          Parametr əlavə et
         </Button>
       </Box>
 
-      {maintenanceMode && (
-        <Alert severity="warning" sx={{ mb: 3 }}>
-          Wartungsmodus ist aktiviert. Die Website ist für Besucher nicht erreichbar.
-        </Alert>
-      )}
+      {/* Search */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <TextField
+            placeholder="Açar, təsvir və ya dəyər axtar..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            InputProps={{
+              startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />,
+            }}
+            fullWidth
+          />
+        </CardContent>
+      </Card>
 
-      <Grid container spacing={3}>
-        {/* Business Information */}
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                <Business color="primary" />
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  Geschäftsinformationen
-                </Typography>
-              </Box>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Geschäftsname"
-                    fullWidth
-                    {...register('business_name')}
-                    error={!!errors.business_name}
-                    helperText={errors.business_name?.message}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Website URL"
-                    fullWidth
-                    {...register('website_url')}
-                    error={!!errors.website_url}
-                    helperText={errors.website_url?.message}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    label="Geschäftsadresse"
-                    fullWidth
-                    multiline
-                    rows={2}
-                    {...register('business_address')}
-                  />
-                </Grid>
+      {/* Settings Table */}
+      <Card>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Açar</TableCell>
+                <TableCell>Dəyər</TableCell>
+                <TableCell>Tip</TableCell>
+                <TableCell>Təsvir</TableCell>
+                <TableCell>Public</TableCell>
+                <TableCell>Son yeniləmə</TableCell>
+                <TableCell align="right">Əməliyyatlar</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={7} align="center">
+                    <CircularProgress size={24} />
+                  </TableCell>
+                </TableRow>
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={7} align="center" sx={{ color: 'error.main' }}>
+                    Xəta: {error instanceof Error ? error.message : 'Məlumatlar yüklənə bilmədi'}
+                  </TableCell>
+                </TableRow>
+              ) : data?.items.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} align="center">
+                    Heç bir parametr tapılmadı
+                  </TableCell>
+                </TableRow>
+              ) : (
+                data?.items.map((setting: any) => (
+                  <TableRow key={setting.key} hover>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                        {setting.key}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          maxWidth: 300,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {setting.value || '-'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={VALUE_TYPE_LABELS[setting.value_type] || setting.value_type}
+                        size="small"
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          maxWidth: 250,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {setting.description || '-'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={setting.is_public ? 'Bəli' : 'Xeyr'}
+                        size="small"
+                        color={setting.is_public ? 'success' : 'default'}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="caption" sx={{ display: 'block' }}>
+                        {formatDateTime(setting.updated_at)}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        {setting.updated_by_user?.full_name || '-'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <IconButton size="small" color="primary" onClick={() => handleEdit(setting)}>
+                        <Edit fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleDelete(setting.key)}
+                      >
+                        <Delete fontSize="small" />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Card>
+
+      {/* FORM DIALOG */}
+      <Dialog open={formOpen} onClose={handleCloseForm} maxWidth="md" fullWidth>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <DialogTitle>{isEditMode ? 'Parametri redaktə et' : 'Yeni Parametr əlavə et'}</DialogTitle>
+
+          <DialogContent>
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+              {/* Key */}
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="key"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Açar *"
+                      fullWidth
+                      required
+                      disabled={isEditMode}
+                      error={!!errors.key}
+                      helperText={errors.key?.message || 'məs: business_name, email_enabled'}
+                    />
+                  )}
+                />
               </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
 
-        {/* Contact Information */}
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                <Phone color="primary" />
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  Kontaktinformationen
-                </Typography>
-              </Box>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="E-Mail"
-                    type="email"
-                    fullWidth
-                    {...register('business_email')}
-                    error={!!errors.business_email}
-                    helperText={errors.business_email?.message}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Telefon"
-                    fullWidth
-                    {...register('business_phone')}
-                    error={!!errors.business_phone}
-                    helperText={errors.business_phone?.message}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="WhatsApp"
-                    fullWidth
-                    {...register('business_whatsapp')}
-                  />
-                </Grid>
+              {/* Value Type */}
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="value_type"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      select
+                      label="Tip *"
+                      fullWidth
+                      required
+                      error={!!errors.value_type}
+                      helperText={errors.value_type?.message}
+                    >
+                      <MenuItem value="string">Mətn</MenuItem>
+                      <MenuItem value="number">Rəqəm</MenuItem>
+                      <MenuItem value="boolean">Boolean</MenuItem>
+                      <MenuItem value="json">JSON</MenuItem>
+                    </TextField>
+                  )}
+                />
               </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
 
-        {/* Email Notifications */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                <Notifications color="primary" />
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  E-Mail Benachrichtigungen
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      {...register('booking_confirmation_email')}
-                      defaultChecked
+              {/* Value */}
+              <Grid item xs={12}>
+                <Controller
+                  name="value"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Dəyər"
+                      fullWidth
+                      multiline
+                      rows={3}
+                      error={!!errors.value}
+                      helperText={errors.value?.message}
                     />
-                  }
-                  label="Buchungsbestätigung senden"
+                  )}
                 />
-                <FormControlLabel
-                  control={
-                    <Switch
-                      {...register('booking_reminder_email')}
-                      defaultChecked
-                    />
-                  }
-                  label="Terminerinnerung senden"
-                />
-                <TextField
-                  label="Erinnerung (Stunden vor Termin)"
-                  type="number"
-                  fullWidth
-                  {...register('booking_reminder_hours', { valueAsNumber: true })}
-                  error={!!errors.booking_reminder_hours}
-                  helperText={errors.booking_reminder_hours?.message}
-                />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+              </Grid>
 
-        {/* System Settings */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                <Security color="primary" />
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  Systemeinstellungen
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <FormControlLabel
-                  control={<Switch {...register('maintenance_mode')} />}
-                  label="Wartungsmodus"
-                />
-                <Divider />
-                <FormControlLabel
-                  control={
-                    <Switch
-                      {...register('allow_online_booking')}
-                      defaultChecked
+              {/* Description */}
+              <Grid item xs={12}>
+                <Controller
+                  name="description"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Təsvir"
+                      fullWidth
+                      multiline
+                      rows={2}
+                      error={!!errors.description}
+                      helperText={errors.description?.message}
                     />
-                  }
-                  label="Online-Buchungen erlauben"
+                  )}
                 />
-                <FormControlLabel
-                  control={<Switch {...register('require_email_verification')} />}
-                  label="E-Mail-Verifizierung erforderlich"
+              </Grid>
+
+              {/* Is Public */}
+              <Grid item xs={12}>
+                <Controller
+                  name="is_public"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={<Switch {...field} checked={field.value} />}
+                      label="Public API-yə açıqdır"
+                    />
+                  )}
                 />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+              </Grid>
+            </Grid>
+          </DialogContent>
+
+          <DialogActions>
+            <Button onClick={handleCloseForm} disabled={isSubmitting}>
+              Ləğv et
+            </Button>
+            <Button type="submit" variant="contained" disabled={isSubmitting}>
+              {isSubmitting ? 'Yadda saxlanılır...' : isEditMode ? 'Yenilə' : 'Əlavə et'}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
     </Box>
   );
 }

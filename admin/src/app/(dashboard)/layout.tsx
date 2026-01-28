@@ -64,7 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             minHeight: '100vh',
           }}
         >
-          Loading...
+          Yüklənir...
         </Box>
       </Providers>
     );

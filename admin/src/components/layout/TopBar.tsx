@@ -49,10 +49,10 @@ export function TopBar({ sidebarOpen }: TopBarProps) {
       const supabase = createClient();
       await supabase.auth.signOut();
       logout();
-      toast.success('Erfolgreich abgemeldet');
+      toast.success('Uğurla çıxış edildi');
       router.push('/login');
     } catch (error) {
-      toast.error('Fehler beim Abmelden');
+      toast.error('Çıxış zamanı xəta');
     }
     handleMenuClose();
   };
@@ -85,7 +85,7 @@ export function TopBar({ sidebarOpen }: TopBarProps) {
               color="inherit"
               sx={{ display: 'flex', alignItems: 'center' }}
             >
-              Dashboard
+              İdarə Paneli
             </Link>
           </Breadcrumbs>
         </Box>
@@ -157,14 +157,14 @@ export function TopBar({ sidebarOpen }: TopBarProps) {
               <ListItemIcon>
                 <Person fontSize="small" />
               </ListItemIcon>
-              Profile
+              Profil
             </MenuItem>
 
             <MenuItem onClick={() => router.push('/dashboard/settings')}>
               <ListItemIcon>
                 <SettingsIcon fontSize="small" />
               </ListItemIcon>
-              Settings
+              Parametrlər
             </MenuItem>
 
             <Divider />
@@ -173,7 +173,7 @@ export function TopBar({ sidebarOpen }: TopBarProps) {
               <ListItemIcon>
                 <Logout fontSize="small" />
               </ListItemIcon>
-              Logout
+              Çıxış
             </MenuItem>
           </Menu>
         </Box>

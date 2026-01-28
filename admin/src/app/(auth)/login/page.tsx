@@ -22,8 +22,8 @@ import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 
 const loginSchema = z.object({
-  email: z.string().email('Ungültige E-Mail-Adresse'),
-  password: z.string().min(6, 'Passwort muss mindestens 6 Zeichen lang sein'),
+  email: z.string().email('Yanlış e-poçt ünvanı'),
+  password: z.string().min(6, 'Şifrə ən azı 6 simvol olmalıdır'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -61,11 +61,11 @@ export default function LoginPage() {
       });
 
       if (authError) {
-        throw new Error('Ungültige E-Mail oder Passwort');
+        throw new Error('Yanlış e-poçt və ya şifrə');
       }
 
       if (!authData.user) {
-        throw new Error('Anmeldung fehlgeschlagen');
+        throw new Error('Giriş uğursuz oldu');
       }
 
       // Get user profile from users table
@@ -76,19 +76,19 @@ export default function LoginPage() {
         .single();
 
       if (userError || !userData) {
-        throw new Error('Benutzerprofil nicht gefunden');
+        throw new Error('İstifadəçi profili tapılmadı');
       }
 
       // Check if user is active
       if (!userData.is_active) {
         await supabase.auth.signOut();
-        throw new Error('Ihr Konto wurde deaktiviert');
+        throw new Error('Hesabınız deaktiv edilib');
       }
 
       // Check if user has admin or technician role
       if (!['admin', 'technician'].includes(userData.role)) {
         await supabase.auth.signOut();
-        throw new Error('Keine Berechtigung für den Admin-Bereich');
+        throw new Error('Admin panelinə giriş icazəniz yoxdur');
       }
 
       // Update last login
@@ -100,10 +100,10 @@ export default function LoginPage() {
       // Set user in store
       setUser(userData);
 
-      toast.success('Erfolgreich angemeldet!');
+      toast.success('Uğurla daxil oldunuz!');
       router.push('/dashboard');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten';
+      const message = err instanceof Error ? err.message : 'Xəta baş verdi';
       setError(message);
       toast.error(message);
     } finally {
@@ -145,7 +145,7 @@ export default function LoginPage() {
               Mood IT
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Admin Panel
+              İdarə Paneli
             </Typography>
           </Box>
 
@@ -160,7 +160,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit(onSubmit)}>
             <TextField
               {...register('email')}
-              label="E-Mail"
+              label="E-poçt"
               type="email"
               fullWidth
               error={!!errors.email}
@@ -171,7 +171,7 @@ export default function LoginPage() {
 
             <TextField
               {...register('password')}
-              label="Passwort"
+              label="Şifrə"
               type={showPassword ? 'text' : 'password'}
               fullWidth
               error={!!errors.password}
@@ -202,13 +202,13 @@ export default function LoginPage() {
               startIcon={<LoginIcon />}
               sx={{ mb: 2 }}
             >
-              {isLoading ? 'Wird angemeldet...' : 'Anmelden'}
+              {isLoading ? 'Daxil olunur...' : 'Daxil ol'}
             </Button>
           </form>
 
           {/* Footer */}
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 2 }}>
-            © 2026 Mood IT - Alle Rechte vorbehalten
+            © 2026 Mood IT - Bütün hüquqlar qorunur
           </Typography>
         </CardContent>
       </Card>
