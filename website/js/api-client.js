@@ -122,66 +122,130 @@ function getServiceIcon(service) {
   const name = (service.name_de || '').toLowerCase();
   const slug = (service.slug || '').toLowerCase();
   
-  // Icon mapping based on service name/slug
-  if (name.includes('display') || name.includes('bildschirm') || slug.includes('display')) {
+  // ========== SMARTPHONE ICONS ==========
+  if (name.includes('display') || name.includes('bildschirm') || name.includes('screen') || slug.includes('display')) {
     return 'fa-solid fa-mobile-screen-button';
   }
-  if (name.includes('akku') || name.includes('battery') || slug.includes('akku')) {
+  if (name.includes('akku') || name.includes('battery') || name.includes('batarya') || slug.includes('akku') || slug.includes('battery')) {
     return 'fa-solid fa-battery-full';
   }
   if (name.includes('kamera') || name.includes('camera') || slug.includes('camera')) {
     return 'fa-solid fa-camera';
   }
-  if (name.includes('wasserschaden') || name.includes('water') || slug.includes('wasser')) {
+  if (name.includes('wasserschaden') || name.includes('water') || name.includes('su') || slug.includes('wasser') || slug.includes('water')) {
     return 'fa-solid fa-droplet';
   }
+  if (name.includes('ladebuchse') || name.includes('charging port') || name.includes('şarj') || slug.includes('ladebuchse')) {
+    return 'fa-solid fa-charging-station';
+  }
+  if (name.includes('lautsprecher') || name.includes('speaker') || slug.includes('speaker')) {
+    return 'fa-solid fa-volume-high';
+  }
+  if (name.includes('mikrofon') || name.includes('microphone') || slug.includes('mikrofon')) {
+    return 'fa-solid fa-microphone';
+  }
+  if (name.includes('backcover') || name.includes('rückseite') || name.includes('arka') || slug.includes('backcover')) {
+    return 'fa-solid fa-mobile';
+  }
+  if (name.includes('homebutton') || name.includes('button') || slug.includes('button')) {
+    return 'fa-regular fa-circle-dot';
+  }
+  if (name.includes('softwareupdate') || name.includes('software') || slug.includes('software')) {
+    return 'fa-solid fa-download';
+  }
+  if (name.includes('datenrettung') || name.includes('data recovery') || slug.includes('daten')) {
+    return 'fa-solid fa-cloud-arrow-up';
+  }
+  
+  // ========== COMPUTER / NOTEBOOK ICONS ==========
   if (name.includes('windows') || slug.includes('windows')) {
     return 'fa-brands fa-windows';
   }
-  if (name.includes('hardware') || name.includes('upgrade') || slug.includes('hardware')) {
+  if (name.includes('hardware') || name.includes('upgrade') || slug.includes('hardware') || slug.includes('upgrade')) {
     return 'fa-solid fa-memory';
   }
-  if (name.includes('reinigung') || name.includes('cleaning') || slug.includes('reinigung')) {
+  if (name.includes('reinigung') || name.includes('cleaning') || name.includes('təmizlik') || slug.includes('reinigung')) {
     return 'fa-solid fa-broom';
   }
   if (name.includes('performance') || name.includes('tuning') || slug.includes('performance')) {
     return 'fa-solid fa-gauge-high';
   }
-  if (name.includes('macbook') || name.includes('imac') || slug.includes('macbook')) {
+  if (name.includes('virenentfernung') || name.includes('virus') || slug.includes('virus')) {
+    return 'fa-solid fa-shield-virus';
+  }
+  if (name.includes('ssd') || name.includes('hdd') || name.includes('festplatte') || slug.includes('ssd') || slug.includes('hdd')) {
+    return 'fa-solid fa-hard-drive';
+  }
+  if (name.includes('ram') || name.includes('speicher') || slug.includes('ram')) {
+    return 'fa-solid fa-memory';
+  }
+  if (name.includes('keyboard') || name.includes('tastatur') || slug.includes('keyboard')) {
+    return 'fa-solid fa-keyboard';
+  }
+  if (name.includes('lüfter') || name.includes('cooling') || name.includes('fan') || slug.includes('luefter') || slug.includes('fan')) {
+    return 'fa-solid fa-fan';
+  }
+  if (name.includes('netzteil') || name.includes('power supply') || slug.includes('netzteil')) {
+    return 'fa-solid fa-plug';
+  }
+  if (name.includes('motherboard') || name.includes('mainboard') || slug.includes('motherboard')) {
+    return 'fa-solid fa-microchip';
+  }
+  if (name.includes('zusammenbau') || name.includes('pc build') || slug.includes('zusammenbau')) {
+    return 'fa-solid fa-screwdriver-wrench';
+  }
+  
+  // ========== APPLE / MACOS ICONS ==========
+  if (name.includes('macbook') || name.includes('imac') || name.includes('mac') || slug.includes('macbook') || slug.includes('imac') || slug.includes('macos')) {
     return 'fa-brands fa-apple';
   }
+  if (name.includes('iphone') || slug.includes('iphone')) {
+    return 'fa-solid fa-mobile-screen';
+  }
+  if (name.includes('ipad') || slug.includes('ipad')) {
+    return 'fa-solid fa-tablet-screen-button';
+  }
+  
+  // ========== GAMING ICONS ==========
   if (name.includes('ps5') || name.includes('ps4') || name.includes('playstation') || slug.includes('playstation')) {
     return 'fa-brands fa-playstation';
   }
   if (name.includes('xbox') || slug.includes('xbox')) {
     return 'fa-brands fa-xbox';
   }
+  if (name.includes('nintendo') || name.includes('switch') || slug.includes('nintendo')) {
+    return 'fa-solid fa-gamepad';
+  }
+  if (name.includes('controller') || slug.includes('controller')) {
+    return 'fa-solid fa-gamepad';
+  }
   if (name.includes('hdmi') || slug.includes('hdmi')) {
     return 'fa-solid fa-display';
   }
-  if (name.includes('gpu') || name.includes('grafikkarte') || slug.includes('gpu')) {
+  
+  // ========== GPU / GRAPHICS ICONS ==========
+  if (name.includes('gpu') || name.includes('grafikkarte') || name.includes('graphics') || slug.includes('gpu')) {
     return 'fa-solid fa-microchip';
   }
   if (name.includes('reballing') || slug.includes('reballing')) {
     return 'fa-solid fa-fire';
   }
-  if (name.includes('pc') || name.includes('zusammenbau') || slug.includes('zusammenbau')) {
-    return 'fa-solid fa-screwdriver-wrench';
-  }
-  if (name.includes('ssd') || name.includes('hdd') || slug.includes('ssd')) {
-    return 'fa-solid fa-hard-drive';
-  }
-  if (name.includes('keyboard') || name.includes('tastatur') || slug.includes('keyboard')) {
-    return 'fa-solid fa-keyboard';
-  }
-  if (name.includes('lüfter') || name.includes('cooling') || slug.includes('luefter')) {
-    return 'fa-solid fa-fan';
-  }
-  if (name.includes('netzteil') || name.includes('power') || slug.includes('netzteil')) {
-    return 'fa-solid fa-plug';
+  if (name.includes('thermal paste') || name.includes('wärmeleitpaste') || slug.includes('thermal')) {
+    return 'fa-solid fa-temperature-half';
   }
   
-  // Default icon
+  // ========== GENERAL REPAIR ICONS ==========
+  if (name.includes('diagnose') || name.includes('diagnostic') || slug.includes('diagnose')) {
+    return 'fa-solid fa-stethoscope';
+  }
+  if (name.includes('garantie') || name.includes('warranty') || slug.includes('garantie')) {
+    return 'fa-solid fa-certificate';
+  }
+  if (name.includes('beratung') || name.includes('consultation') || slug.includes('beratung')) {
+    return 'fa-solid fa-user-tie';
+  }
+  
+  // Default repair icon
   return 'fa-solid fa-wrench';
 }
 
@@ -207,7 +271,7 @@ function renderServices(services, container, options = {}) {
   }
 
   if (!services || services.length === 0) {
-    containerEl.innerHTML = '<div class="col-12 text-center"><p>Keine Dienste verfügbar</p></div>';
+    containerEl.innerHTML = '<div class="col-12 text-center"><p>Xidmət mövcud deyil</p></div>';
     return;
   }
 
@@ -225,7 +289,7 @@ function renderServices(services, container, options = {}) {
     const priceDisplay = service.price_display || 
                         (service.price_min && service.price_max 
                           ? `€${service.price_min}-${service.price_max}` 
-                          : service.price_min ? `€${service.price_min}` : 'auf Anfrage');
+                          : service.price_min ? `€${service.price_min}` : 'sorğu əsasında');
     
     // Get appropriate icon for this service
     const iconClass = service.icon || getServiceIcon(service);
@@ -243,7 +307,7 @@ function renderServices(services, container, options = {}) {
             ${showDuration ? `<div class="service-duration">${service.duration || ''}</div>` : ''}
           </div>
           <div class="service-btn">
-            <a href="${linkPrefix}${service.category?.slug || 'all'}.html" class="readmore-btn">Mehr erfahren</a>
+            <a href="${linkPrefix}${service.category?.slug || 'all'}.html" class="readmore-btn">Ətraflı</a>
           </div>
         </div>
       </div>
