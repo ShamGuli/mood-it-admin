@@ -154,11 +154,11 @@ function getBrandSlugById(brandId, brandsObj) {
  * Helper: Format price range
  */
 function formatPriceRange(min, max) {
-    if (!min && !max) return 'auf Anfrage';
+    if (!min && !max) return 'sorğu əsasında';
     if (min && max && min !== max) {
         return `€${min}-${max}`;
     }
-    return `ab €${min || max}`;
+    return `€${min || max}`;
 }
 
 /**
