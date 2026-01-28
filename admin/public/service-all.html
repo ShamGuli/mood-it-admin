@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+	<meta name="description" content="Mood IT-nin bütün xidmətləri - Smartphone, PlayStation, macOS, Notebook, Desktop və GPU servisi Bakıda.">
+	<meta name="keywords" content="təmir, servis, smartfon, playstation, noutbuk, gpu, bakı">
+	<title>Bütün Xidmətlər - Mood IT Bakı</title>
+	<link rel="shortcut icon" type="image/x-icon" href="images/favicon.png">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet">
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+	<link href="css/slicknav.min.css" rel="stylesheet">
+	<link href="css/swiper-bundle.min.css" rel="stylesheet">
+	<link href="css/all.min.css" rel="stylesheet">
+	<link href="css/animate.css" rel="stylesheet">
+	<link href="css/magnific-popup.css" rel="stylesheet">
+	<link href="css/mousecursor.css" rel="stylesheet">
+	<link href="css/custom.css" rel="stylesheet">
+</head>
+<body>
+    <div class="preloader">
+		<div class="loading-container">
+			<div class="loading"></div>
+			<div id="loading-icon"><img src="images/loader.png" alt=""></div>
+		</div>
+	</div>
+
+	<header class="main-header">
+		<div class="header-sticky">
+			<nav class="navbar navbar-expand-lg">
+				<div class="container">
+					<a class="navbar-brand" href="./"><img src="images/logo.png" alt="Mood IT Logo"></a>
+					<div class="collapse navbar-collapse main-menu">
+                        <div class="nav-menu-wrapper">
+                            <ul class="navbar-nav mr-auto" id="menu">
+                                <li class="nav-item"><a class="nav-link" href="/">Ana Səhifə</a></li>                                
+                                <li class="nav-item"><a class="nav-link" href="/about.html">Haqqımızda</a></li>
+                                <li class="nav-item submenu"><a class="nav-link" href="/service-all.html">Xidmətlər</a>
+									<ul>                                        
+                                        <li class="nav-item"><a class="nav-link" href="/service-smartphone.html"><i class="fa-solid fa-mobile"></i> Smartfon</a></li>
+										<li class="nav-item"><a class="nav-link" href="/service-playstation.html"><i class="fa-brands fa-playstation"></i> PlayStation</a></li>
+										<li class="nav-item"><a class="nav-link" href="/service-macos.html"><i class="fa-brands fa-apple"></i> macOS</a></li>
+										<li class="nav-item"><a class="nav-link" href="/service-notebook.html"><i class="fa-solid fa-laptop"></i> Noutbuk</a></li>
+										<li class="nav-item"><a class="nav-link" href="/service-desktop.html"><i class="fa-solid fa-desktop"></i> Masaüstü PC</a></li>
+										<li class="nav-item"><a class="nav-link" href="/service-gpu.html"><i class="fa-solid fa-microchip"></i> Xbox & GPU</a></li>
+                                    </ul>
+								</li>
+                                <li class="nav-item"><a class="nav-link" href="/preisliste.html">Qiymətlər</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/contact.html">Əlaqə</a></li>
+                            </ul>
+                        </div>
+                        <div class="header-btn">
+                            <a href="/contact.html" class="btn-default">Bizimlə əlaqə saxlayın</a>
+                        </div>
+					</div>
+					<div class="navbar-toggle"></div>
+				</div>
+			</nav>
+			<div class="responsive-menu"></div>
+		</div>
+	</header>
+
+	<div class="page-header">
+        <div class="grid-lines">
+            <div class="grid-line-1"></div>
+            <div class="grid-line-2"></div>
+            <div class="grid-line-3"></div>
+            <div class="grid-line-4"></div>
+            <div class="grid-line-5"></div>
+        </div>
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-12">
+					<div class="page-header-box">
+						<h1 class="wow fadeInUp" data-cursor="-opaque">Bütün <span>Xidmətlər</span></h1>
+						<nav class="wow fadeInUp" data-wow-delay="0.2s">
+                            <ol class="breadcrumb">
+								<li class="breadcrumb-item"><a href="/">Ana Səhifə</a></li>
+								<li class="breadcrumb-item active">Xidmətlər</li>
+							</ol>
+						</nav>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+    <!-- Services Section Start -->
+    <div class="our-services" style="padding: 120px 0 90px;">
+        <div class="container">
+            <div class="row section-row align-items-center">
+                <div class="col-lg-12">
+                    <div class="section-title section-title-center">
+                        <h3 class="wow fadeInUp">Xidmətlərimiz</h3>
+                        <h2 class="wow fadeInUp" data-wow-delay="0.2s" data-cursor="-opaque">Bütün cihazlar üçün peşəkar təmir və <span>texniki servis</span></h2>
+                        <p class="wow fadeInUp" data-wow-delay="0.4s">Smartfonlardan oyun konsollarına və yüksək performanslı PC-lərə qədər – geniş təmir və baxım xidmətləri təqdim edirik</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic services will be rendered here -->
+            <div class="row" id="services-container">
+                <!-- Loading state -->
+                <div class="col-12 text-center" id="services-loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Yüklənir...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Services Section End -->
+
+    <!-- CTA Section Start -->
+    <div class="cta-box">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="cta-box-content">
+                        <div class="section-title">
+                            <h3 class="wow fadeInUp">Başlamağa hazırsınız?</h3>
+                            <h2 class="wow fadeInUp" data-wow-delay="0.2s" data-cursor="-opaque">Gəlin <span>birlikdə işləyək</span></h2>
+                            <p class="wow fadeInUp" data-wow-delay="0.4s">Pulsuz diaqnostika və peşəkar məsləhət üçün bizimlə əlaqə saxlayın</p>
+                        </div>
+                        <div class="cta-box-list wow fadeInUp" data-wow-delay="0.6s">
+                            <ul>
+                                <li>Pulsuz ilk məsləhət</li>
+                                <li>Sürətli təmir müddətləri</li>
+                            </ul>
+                        </div>
+                        <div class="our-specialties-btn wow fadeInUp" data-wow-delay="0.8s" style="text-align: center; margin-top: 30px;">
+                            <a href="/contact.html" class="btn-default btn-highlighted">Sifariş ver</a>
+                            <a href="/preisliste.html" class="btn-default">Qiymət hesabla</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- CTA Section End -->
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="row">                
+                <div class="col-lg-4 col-md-12">
+                    <div class="about-footer">
+                        <div class="footer-logo">
+                            <img src="images/logo.png" alt="">
+                        </div>
+                        <div class="about-footer-content">
+                            <p>Noutbuk, PlayStation və kompüter servisi sahəsində peşəkar komandamızla sürətli, etibarlı və keyfiyyətli həllər təqdim edirik.</p>
+                        </div>           
+                        <div class="footer-social-links">
+                            <ul>
+                                <li><a href="#"><img src="images/icon-instagram.svg" alt="Instagram"></a></li>
+                                <li><a href="#"><img src="images/icon-facebook.svg" alt="Facebook"></a></li>
+                                <li><a href="#"><img src="images/icon-tiktok.svg" alt="TikTok"></a></li>
+                                <li><a href="#"><img src="images/icon-youtube.svg" alt="YouTube"></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-2 col-md-3">
+                    <div class="footer-links">
+                        <h3>Sürətli keçidlər</h3>
+                        <ul>
+                            <li><a href="/">Ana Səhifə</a></li>
+                            <li><a href="/about.html">Haqqımızda</a></li>
+                            <li><a href="/preisliste.html">Qiymətlər</a></li>
+                            <li><a href="/contact.html">Əlaqə</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-4">
+                    <div class="footer-links">
+                        <h3>Xidmətlər</h3>
+                        <ul>
+                            <li><a href="/service-smartphone.html">Smartfon</a></li>
+                            <li><a href="/service-playstation.html">PlayStation</a></li>
+                            <li><a href="/service-notebook.html">Noutbuk</a></li>
+                            <li><a href="/service-gpu.html">GPU & Xbox</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-5">
+                    <div class="footer-links">
+                        <h3>Əlaqə</h3>
+                        <div class="footer-contact-item">
+                            <div class="icon-box">
+                                <img src="images/icon-location.svg" alt="Ünvan">
+                            </div>
+                            <div class="footer-contact-content">
+                                <p>Küçə 222, Bakı, Azərbaycan</p>
+                            </div>
+                        </div>
+                        <div class="footer-contact-item">
+                            <div class="icon-box">
+                                <img src="images/icon-phone.svg" alt="Telefon">
+                            </div>
+                            <div class="footer-contact-content">
+                                <p><a href="tel:+994505555555">+994 50 555 55 55</a></p>
+                            </div>
+                        </div>
+                        <div class="footer-contact-item">
+                            <div class="icon-box">
+                                <img src="images/icon-mail.svg" alt="E-poçt">
+                            </div>
+                            <div class="footer-contact-content">
+                                <p><a href="mailto:info@moodit.at">info@moodit.at</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-12">
+                    <div class="footer-copyright-text">
+                        <p>Müəllif hüququ © 2025 Mood IT. Bütün hüquqlar qorunur.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/validator.min.js"></script>
+    <script src="js/jquery.slicknav.js"></script>
+    <script src="js/swiper-bundle.min.js"></script>
+    <script src="js/jquery.waypoints.min.js"></script>
+    <script src="js/jquery.counterup.min.js"></script>
+    <script src="js/jquery.magnific-popup.min.js"></script>
+    <script src="js/SmoothScroll.js"></script>
+    <script src="js/parallaxie.js"></script>
+    <script src="js/gsap.min.js"></script>
+    <script src="js/magiccursor.js"></script>
+    <script src="js/SplitText.js"></script>
+    <script src="js/ScrollTrigger.min.js"></script>
+    <script src="js/jquery.mb.YTPlayer.min.js"></script>
+    <script src="js/wow.min.js"></script>
+    <script src="js/function.js"></script>
+    <!-- API Client -->
+    <script src="js/api-client.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const container = document.getElementById('services-container');
+            const loading = document.getElementById('services-loading');
+            
+            let services = [];
+            
+            try {
+                // Fetch all services
+                services = await fetchServices();
+                
+                // Hide loading
+                if (loading) loading.style.display = 'none';
+                
+                if (services && services.length > 0) {
+                    // Render services
+                    renderServices(services, container, {
+                        showPrice: true,
+                        showDuration: true,
+                        linkPrefix: '/service-',
+                        colClass: 'col-lg-4 col-md-6'
+                    });
+                } else {
+                    container.innerHTML = '<div class="col-12 text-center"><p>Xidmət mövcud deyil</p></div>';
+                }
+            } catch (error) {
+                console.error('Error loading services:', error);
+                if (loading) loading.style.display = 'none';
+                container.innerHTML = '<div class="col-12 text-center"><p class="text-danger">Xidmətlər yüklənərkən xəta baş verdi</p></div>';
+            }
+            
+            // SEO: Update meta tags
+            updateMetaTags({
+                title: 'Bütün Xidmətlər - Mood IT Bakı',
+                description: 'Smartfonlar, MacBook-lar, Noutbuklar, PlayStation, GPU və daha çox üçün peşəkar təmir. Bütün servislər bir nəzərdə.',
+                keywords: 'Təmir Servisi, Smartfon Təmiri, PlayStation Servisi, MacBook Təmiri, GPU Reballing, Bakı',
+                url: 'https://moodit.at/service-all.html'
+            });
+            
+            // Structured data for services (only if services loaded)
+            if (services && services.length > 0) {
+                addStructuredData({
+                    '@context': 'https://schema.org',
+                    '@type': 'ItemList',
+                    'name': 'Mood IT Xidmətləri',
+                    'description': 'Bütün texniki təmir və servis xidmətləri',
+                    'itemListElement': services.slice(0, 6).map((service, index) => ({
+                        '@type': 'ListItem',
+                        'position': index + 1,
+                        'item': {
+                            '@type': 'Service',
+                            'name': service.name_de,
+                            'description': service.description_de
+                        }
+                    }))
+                });
+            }
+        });
+    </script>
+</body>
+</html>
