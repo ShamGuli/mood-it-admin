@@ -6,7 +6,10 @@
  * SEO-optimized with meta tags and structured data
  */
 
-const API_BASE = 'http://localhost:3000/api/public';
+// Auto-detect API base URL (production vs local)
+const API_BASE = window.location.hostname === 'localhost' 
+  ? 'http://localhost:3000/api/public'
+  : '/api/public';
 
 // ============================================
 // API FETCH FUNCTIONS
