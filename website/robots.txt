@@ -1,0 +1,15 @@
+# Mood IT - Robots.txt
+# Allow all crawlers
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://moodit.at/sitemap.xml
+
+# Disallow admin panel
+Disallow: /admin/
+Disallow: /api/
+
+# Crawl-delay
+Crawl-delay: 10
