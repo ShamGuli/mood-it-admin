@@ -6,8 +6,6 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Output configuration for Vercel
-  output: 'standalone',
   images: {
     remotePatterns: [
       {
