@@ -4,6 +4,10 @@ import '@/app/globals.css';
 
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://moodit.at'),
+  icons: {
+    icon: '/images/favicon.png',
+    shortcut: '/images/favicon.png',
+  },
 };
 
 export default function RootLayout({
@@ -14,8 +18,15 @@ export default function RootLayout({
   return (
     <html lang="az">
       <head>
-        {/* Favicon */}
-        <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.png" />
+        {/* CSS Files */}
+        <link href="/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="/css/slicknav.min.css" rel="stylesheet" />
+        <link href="/css/swiper-bundle.min.css" rel="stylesheet" />
+        <link href="/css/all.min.css" rel="stylesheet" />
+        <link href="/css/animate.css" rel="stylesheet" />
+        <link href="/css/magnific-popup.css" rel="stylesheet" />
+        <link href="/css/mousecursor.css" rel="stylesheet" />
+        <link href="/css/custom.css" rel="stylesheet" />
         
         {/* Google Fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -24,18 +35,8 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
           rel="stylesheet"
         />
-        
-        {/* CSS Files */}
-        <link href="/css/bootstrap.min.css" rel="stylesheet" media="screen" />
-        <link href="/css/slicknav.min.css" rel="stylesheet" />
-        <link href="/css/swiper-bundle.min.css" rel="stylesheet" />
-        <link href="/css/all.min.css" rel="stylesheet" media="screen" />
-        <link href="/css/animate.css" rel="stylesheet" />
-        <link href="/css/magnific-popup.css" rel="stylesheet" />
-        <link href="/css/mousecursor.css" rel="stylesheet" />
-        <link href="/css/custom.css" rel="stylesheet" media="screen" />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <PublicLayout>{children}</PublicLayout>
         
         {/* Scripts - Load in correct order with Next.js Script component */}
