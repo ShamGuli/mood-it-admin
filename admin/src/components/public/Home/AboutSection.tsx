@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function AboutSection() {
   return (
@@ -8,7 +9,13 @@ export default function AboutSection() {
           <div className="col-lg-6">
             <div className="about-image-box">
               <div className="about-image">
-                <img src="/images/about-img.jpg" alt="Haqqımızda" />
+                <Image
+                  src="/images/about-img.jpg"
+                  alt="Haqqımızda"
+                  width={600}
+                  height={400}
+                  style={{ width: '100%', height: 'auto' }}
+                />
               </div>
             </div>
           </div>

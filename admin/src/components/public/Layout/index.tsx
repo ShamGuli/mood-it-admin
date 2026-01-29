@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Header from './Header';
 import Footer from './Footer';
 
@@ -13,7 +14,7 @@ export default function PublicLayout({ children }: LayoutProps) {
         <div className="loading-container">
           <div className="loading"></div>
           <div id="loading-icon">
-            <img src="/images/loader.png" alt="Loading" />
+            <Image src="/images/loader.png" alt="Loading" width={80} height={80} priority />
           </div>
         </div>
       </div>

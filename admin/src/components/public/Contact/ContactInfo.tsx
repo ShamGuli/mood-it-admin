@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface Props {
   settings: Record<string, string>;
@@ -22,7 +23,7 @@ export default function ContactInfo({ settings }: Props) {
       {/* Address */}
       <div className="contact-info-item">
         <div className="icon-box">
-          <img src="/images/icon-location.svg" alt="Ünvan" />
+          <Image src="/images/icon-location.svg" alt="Ünvan" width={48} height={48} />
         </div>
         <div className="contact-item-content">
           <p>Ünvan</p>
@@ -33,7 +34,7 @@ export default function ContactInfo({ settings }: Props) {
       {/* Phone */}
       <div className="contact-info-item">
         <div className="icon-box">
-          <img src="/images/icon-phone.svg" alt="Telefon" />
+          <Image src="/images/icon-phone.svg" alt="Telefon" width={48} height={48} />
         </div>
         <div className="contact-item-content">
           <p>Telefon</p>
@@ -48,7 +49,7 @@ export default function ContactInfo({ settings }: Props) {
       {/* Email */}
       <div className="contact-info-item">
         <div className="icon-box">
-          <img src="/images/icon-mail.svg" alt="E-mail" />
+          <Image src="/images/icon-mail.svg" alt="E-mail" width={48} height={48} />
         </div>
         <div className="contact-item-content">
           <p>E-mail</p>
@@ -63,7 +64,7 @@ export default function ContactInfo({ settings }: Props) {
       {/* Business Hours */}
       <div className="contact-info-item">
         <div className="icon-box">
-          <img src="/images/icon-specialties-item-1.svg" alt="İş saatları" />
+          <Image src="/images/icon-specialties-item-1.svg" alt="İş saatları" width={48} height={48} />
         </div>
         <div className="contact-item-content">
           <p>İş saatları</p>

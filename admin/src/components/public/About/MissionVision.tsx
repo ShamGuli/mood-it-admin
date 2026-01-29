@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 
 const accordionData = [
   {
@@ -69,7 +70,7 @@ export default function MissionVision() {
                       <div className="accordion-body">
                         <div className="accordion-image">
                           <figure>
-                            <img src={item.image} alt={item.title} />
+                            <Image src={item.image} alt={item.title} width={400} height={300} />
                           </figure>
                         </div>
                         <div className="accordion-item-content">
@@ -91,7 +92,13 @@ export default function MissionVision() {
           <div className="col-lg-5">
             <div className="our-potential-image">
               <figure className="image-anime reveal">
-                <img src="/images/our-potential-img.jpg" alt="Potensialımız" />
+                <Image
+                  src="/images/our-potential-img.jpg"
+                  alt="Potensialımız"
+                  width={500}
+                  height={600}
+                  style={{ width: '100%', height: 'auto' }}
+                />
               </figure>
             </div>
           </div>

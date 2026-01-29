@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 interface Brand {
   id: string;
   name: string;
@@ -49,9 +51,11 @@ export default function CategoryBrands({ brands, categoryName }: Props) {
                 }}
               >
                 {brand.logo_url ? (
-                  <img
+                  <Image
                     src={brand.logo_url}
                     alt={brand.name}
+                    width={120}
+                    height={50}
                     style={{ maxWidth: '100%', maxHeight: '50px', objectFit: 'contain' }}
                   />
                 ) : (

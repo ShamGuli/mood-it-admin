@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 const brands = [
   { name: 'Apple', logo: '/images/company-logo-1.png' },
   { name: 'Samsung', logo: '/images/company-logo-2.png' },
@@ -17,7 +19,7 @@ export default function BrandSlider() {
           {brands.map((brand, index) => (
             <div key={index} className="swiper-slide">
               <div className="company-logo">
-                <img src={brand.logo} alt={brand.name} />
+                <Image src={brand.logo} alt={brand.name} width={120} height={60} />
               </div>
             </div>
           ))}
@@ -25,7 +27,7 @@ export default function BrandSlider() {
           {brands.map((brand, index) => (
             <div key={`dup-${index}`} className="swiper-slide">
               <div className="company-logo">
-                <img src={brand.logo} alt={brand.name} />
+                <Image src={brand.logo} alt={brand.name} width={120} height={60} />
               </div>
             </div>
           ))}

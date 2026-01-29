@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export default function AboutHero() {
   return (
     <div className="about-us">
@@ -28,13 +30,13 @@ export default function AboutHero() {
               {/* Mission & Vision List */}
               <div className="about-us-list">
                 <div className="about-list-item wow fadeInUp">
-                  <img src="/images/icon-about-item-1.svg" alt="Missiyamız" />
+                  <Image src="/images/icon-about-item-1.svg" alt="Missiyamız" width={64} height={64} />
                   <h3>Missiyamız</h3>
                   <p>Müştərilərimizə etibarlı və keyfiyyətli texniki servis təqdim etmək</p>
                 </div>
 
                 <div className="about-list-item wow fadeInUp" data-wow-delay="0.2s">
-                  <img src="/images/icon-about-item-2.svg" alt="Vizyonumuz" />
+                  <Image src="/images/icon-about-item-2.svg" alt="Vizyonumuz" width={64} height={64} />
                   <h3>Vizyonumuz</h3>
                   <p>Cihazların etibarlılığı və mükəmməlliyi üçün ilk seçim olmaq</p>
                 </div>

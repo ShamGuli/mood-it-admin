@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 interface Props {
   categoryId: string;
@@ -73,14 +74,16 @@ export default function StepBrand({ categoryId, onSelect, onBack }: Props) {
               justifyContent: 'center',
               minHeight: '120px',
             }}
-          >
-            {brand.logo_url ? (
-              <img
-                src={brand.logo_url}
-                alt={brand.name}
-                style={{ maxWidth: '100%', maxHeight: '50px', objectFit: 'contain', marginBottom: '15px' }}
-              />
-            ) : (
+              >
+                {brand.logo_url ? (
+                  <Image
+                    src={brand.logo_url}
+                    alt={brand.name}
+                    width={120}
+                    height={50}
+                    style={{ maxWidth: '100%', maxHeight: '50px', objectFit: 'contain', marginBottom: '15px' }}
+                  />
+                ) : (
               <h4 style={{ color: 'var(--primary-color)', fontSize: '18px', marginBottom: '10px' }}>
                 {brand.name}
               </h4>

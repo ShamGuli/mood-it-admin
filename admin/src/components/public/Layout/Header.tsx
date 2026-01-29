@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import Navigation from './Navigation';
 
@@ -14,7 +15,7 @@ export default function Header() {
           <div className="container">
             {/* Logo */}
             <Link href="/" className="navbar-brand">
-              <img src="/images/logo.png" alt="Mood IT Logo" />
+              <Image src="/images/logo.png" alt="Mood IT Logo" width={150} height={50} priority />
             </Link>
 
             {/* Desktop Navigation */}
