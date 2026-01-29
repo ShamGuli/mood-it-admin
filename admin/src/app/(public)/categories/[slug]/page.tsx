@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { generateMetadata as genMeta } from '@/lib/seo/generateMetadata';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createBrowserClient } from '@supabase/supabase-js';
 import PageHeader from '@/components/public/Shared/PageHeader';
 import CategoryHero from '@/components/public/Categories/CategoryHero';
 import CategoryServices from '@/components/public/Categories/CategoryServices';
@@ -40,7 +41,12 @@ export async function generateMetadata({ params }: Props) {
 
 // Generate static paths for all categories
 export async function generateStaticParams() {
-  const supabase = createClient();
+  // Use browser client for build-time generation (no cookies needed)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  
   const { data: categories } = await supabase
     .from('service_categories')
     .select('slug')

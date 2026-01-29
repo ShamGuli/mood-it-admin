@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { generateMetadata as genMeta } from '@/lib/seo/generateMetadata';
 import { generateServiceSchema } from '@/lib/seo/structuredData';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createBrowserClient } from '@supabase/supabase-js';
 import PageHeader from '@/components/public/Shared/PageHeader';
 import ServiceDetail from '@/components/public/Services/ServiceDetail';
 import ServiceSidebar from '@/components/public/Services/ServiceSidebar';
@@ -40,7 +41,12 @@ export async function generateMetadata({ params }: Props) {
 
 // Generate static paths for all services
 export async function generateStaticParams() {
-  const supabase = createClient();
+  // Use browser client for build-time generation (no cookies needed)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  
   const { data: services } = await supabase
     .from('services')
     .select('slug')
