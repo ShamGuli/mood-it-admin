@@ -10,28 +10,24 @@ export async function GET(request: NextRequest) {
 
     const supabase = createClient();
 
-    let query = supabase
-      .from('services')
-      .select('*')
-      .eq('is_active', true)
-      .order('display_order');
+    let query = supabase.from('brands').select('*').eq('is_active', true).order('name');
 
     if (categoryId) {
       query = query.eq('category_id', categoryId);
     }
 
-    const { data: services, error } = await query;
+    const { data: brands, error } = await query;
 
     if (error) throw error;
 
     return NextResponse.json({
       success: true,
-      data: services || [],
+      data: brands || [],
     });
   } catch (error) {
-    console.error('Services API error:', error);
+    console.error('Brands API error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch services' },
+      { success: false, error: 'Failed to fetch brands' },
       { status: 500 }
     );
   }

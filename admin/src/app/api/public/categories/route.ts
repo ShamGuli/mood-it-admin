@@ -1,39 +1,29 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
-// ============================================
-// GET /api/public/categories - Get active categories (PUBLIC)
-// ============================================
-export async function GET(request: NextRequest) {
-  try {
-    const supabase = await createClient();
+export const dynamic = 'force-dynamic';
 
-    const { data, error } = await supabase
+export async function GET() {
+  try {
+    const supabase = createClient();
+
+    const { data: categories, error } = await supabase
       .from('service_categories')
       .select('*')
       .eq('is_active', true)
-      .order('display_order', { ascending: true });
+      .order('display_order');
 
-    if (error) {
-      console.error('Public categories fetch error:', error);
-      return NextResponse.json(
-        { success: false, error: { message: 'Kateqoriyalar yüklənə bilmədi' } },
-        { status: 500 }
-      );
-    }
+    if (error) throw error;
 
     return NextResponse.json({
       success: true,
-      data: data || [],
+      data: categories || [],
     });
   } catch (error) {
-    console.error('Public categories error:', error);
+    console.error('Categories API error:', error);
     return NextResponse.json(
-      { success: false, error: { message: 'Server xətası' } },
+      { success: false, error: 'Failed to fetch categories' },
       { status: 500 }
     );
   }
 }
-
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
