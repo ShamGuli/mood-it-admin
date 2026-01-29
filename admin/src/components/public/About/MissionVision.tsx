@@ -93,7 +93,7 @@ export default function MissionVision() {
             <div className="our-potential-image">
               <figure className="image-anime reveal">
                 <Image
-                  src="/images/our-potential-img.jpg"
+                  src="/images/potential-image.jpg"
                   alt="Potensialımız"
                   width={500}
                   height={600}

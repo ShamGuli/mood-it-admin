@@ -10,7 +10,7 @@ export default function AboutSection() {
             <div className="about-image-box">
               <div className="about-image">
                 <Image
-                  src="/images/about-img.jpg"
+                  src="/images/who-we-are-img-1.jpg"
                   alt="Haqqımızda"
                   width={600}
                   height={400}

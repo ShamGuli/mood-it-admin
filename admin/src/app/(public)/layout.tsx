@@ -40,7 +40,7 @@ export default function RootLayout({
         
         {/* Scripts - Load in correct order with Next.js Script component */}
         <Script src="/js/jquery-3.7.1.min.js" strategy="beforeInteractive" />
-        <Script src="/js/bootstrap.bundle.min.js" strategy="afterInteractive" />
+        <Script src="/js/bootstrap.min.js" strategy="afterInteractive" />
         <Script src="/js/jquery.magnific-popup.min.js" strategy="afterInteractive" />
         <Script src="/js/swiper-bundle.min.js" strategy="afterInteractive" />
         <Script src="/js/jquery.waypoints.min.js" strategy="afterInteractive" />
