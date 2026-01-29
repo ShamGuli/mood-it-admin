@@ -1,3 +1,4 @@
+import Script from 'next/script';
 import PublicLayout from '@/components/public/Layout';
 import '@/app/globals.css';
 
@@ -37,19 +38,19 @@ export default function RootLayout({
       <body>
         <PublicLayout>{children}</PublicLayout>
         
-        {/* Scripts */}
-        <script src="/js/jquery.min.js" async></script>
-        <script src="/js/bootstrap.bundle.min.js" async></script>
-        <script src="/js/jquery.magnific-popup.min.js" async></script>
-        <script src="/js/swiper-bundle.min.js" async></script>
-        <script src="/js/jquery.waypoints.min.js" async></script>
-        <script src="/js/jquery.counterup.min.js" async></script>
-        <script src="/js/jquery.slicknav.js" async></script>
-        <script src="/js/gsap.min.js" async></script>
-        <script src="/js/SplitText.js" async></script>
-        <script src="/js/ScrollTrigger.min.js" async></script>
-        <script src="/js/wow.min.js" async></script>
-        <script src="/js/function.js" async></script>
+        {/* Scripts - Load in correct order with Next.js Script component */}
+        <Script src="/js/jquery-3.7.1.min.js" strategy="beforeInteractive" />
+        <Script src="/js/bootstrap.bundle.min.js" strategy="afterInteractive" />
+        <Script src="/js/jquery.magnific-popup.min.js" strategy="afterInteractive" />
+        <Script src="/js/swiper-bundle.min.js" strategy="afterInteractive" />
+        <Script src="/js/jquery.waypoints.min.js" strategy="afterInteractive" />
+        <Script src="/js/jquery.counterup.min.js" strategy="afterInteractive" />
+        <Script src="/js/jquery.slicknav.js" strategy="afterInteractive" />
+        <Script src="/js/gsap.min.js" strategy="afterInteractive" />
+        <Script src="/js/SplitText.js" strategy="afterInteractive" />
+        <Script src="/js/ScrollTrigger.min.js" strategy="afterInteractive" />
+        <Script src="/js/wow.min.js" strategy="afterInteractive" />
+        <Script src="/js/function.js" strategy="lazyOnload" />
       </body>
     </html>
   );
