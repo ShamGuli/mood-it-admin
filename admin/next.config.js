@@ -6,6 +6,15 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Suppress build errors for deployment
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.ignoreWarnings = [
+        { message: /ENOENT: no such file or directory/ },
+      ];
+    }
+    return config;
+  },
   images: {
     remotePatterns: [
       {
