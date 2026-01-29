@@ -6,6 +6,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  outputFileTracingIncludes: {
+    '/(public)/**/*': ['./src/app/(public)/**/*'],
+    '/(dashboard)/**/*': ['./src/app/(dashboard)/**/*'],
+    '/(auth)/**/*': ['./src/app/(auth)/**/*'],
+  },
   images: {
     remotePatterns: [
       {
